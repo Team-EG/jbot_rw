@@ -1,0 +1,9 @@
+discord.py[voice]
+pynacl
+youtube-dl
+beautifulsoup4
+pydustry
+requests
+aiomysql
+psutil
+nest-asyncio

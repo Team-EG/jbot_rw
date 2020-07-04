@@ -1,0 +1,65 @@
+{
+    "288302173912170497": {
+        "exp": 5,
+        "lvl": 2,
+        "spam_count": 1,
+        "warn": 0,
+        "last_msg": 20200224174151,
+        "last_spam": 20200224174208,
+        "kick_count": 0
+    },
+    "484974284897517568": {
+        "exp": 35,
+        "lvl": 1,
+        "spam_count": 2,
+        "warn": 0,
+        "last_msg": 20200223205827,
+        "last_spam": 20200223205835,
+        "kick_count": 0
+    },
+    "609010014111268894": {
+        "exp": 115,
+        "lvl": 1,
+        "spam_count": 0,
+        "warn": 1,
+        "last_msg": 20200223205239,
+        "last_spam": 20200223205239,
+        "kick_count": 0
+    },
+    "344384179552780289": {
+        "exp": 90,
+        "lvl": 1,
+        "spam_count": 2,
+        "warn": 0,
+        "last_msg": 20200226020131,
+        "last_spam": 20200226020139,
+        "kick_count": 0
+    },
+    "479919454818533376": {
+        "exp": 60,
+        "lvl": 1,
+        "spam_count": 1,
+        "warn": 0,
+        "last_msg": 20200224174141,
+        "last_spam": 20200224174155,
+        "kick_count": 0
+    },
+    "266787266981134337": {
+        "exp": 0,
+        "lvl": 1,
+        "spam_count": 1,
+        "warn": 0,
+        "last_msg": 20200223204827,
+        "last_spam": 20200223204827,
+        "kick_count": 0
+    },
+    "621575268250943490": {
+        "exp": 15,
+        "lvl": 1,
+        "spam_count": 1,
+        "warn": 0,
+        "last_msg": 20200223205740,
+        "last_spam": 20200223205743,
+        "kick_count": 0
+    }
+}
