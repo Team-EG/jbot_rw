@@ -1,10 +1,5 @@
-2020-06-28 22:32:25,495:INFO:discord: DB Loaded.
-2020-06-28 22:32:26,225:INFO:discord.client: logging in using static token
-2020-06-28 22:32:27,167:INFO:discord.gateway: Shard ID 0 has sent the IDENTIFY payload.
-2020-06-28 22:32:27,456:INFO:discord.gateway: Shard ID 0 has connected to Gateway: ["gateway-prd-main-rws7",{"micros":83562,"calls":["discord-sessions-prd-1-39",{"micros":80740,"calls":["start_session",{"micros":76953,"calls":["api-prd-main-lfwm",{"micros":73610,"calls":["get_user",{"micros":6071},"add_authorized_ip",{"micros":3023},"get_guilds",{"micros":1933},"coros_wait",{"micros":2}]}]},"guilds_connect",{"micros":149,"calls":[]},"presence_connect",{"micros":2,"calls":[]}]}]}] (Session ID: fdbe395847758269e5a8b82c48be34cc).
-2020-06-28 22:32:29,463:INFO:discord: Bot online.
-2020-06-29 00:15:45,541:INFO:discord.gateway: Received RECONNECT opcode.
-2020-06-29 00:15:45,738:INFO:discord.shard: Got a request to RESUME the websocket at Shard ID 0.
-2020-06-29 00:15:46,244:INFO:discord.gateway: Created websocket connected to wss://gateway.discord.gg?encoding=json&v=6&compress=zlib-stream
-2020-06-29 00:15:46,246:INFO:discord.gateway: Shard ID 0 has sent the RESUME payload.
-2020-06-29 00:15:46,451:INFO:discord.gateway: Shard ID 0 has successfully RESUMED session fdbe395847758269e5a8b82c48be34cc under trace ["gateway-prd-main-j2wt",{"micros":9128,"calls":["discord-sessions-prd-1-39",{"micros":21}]}].
+2020-07-06 14:08:41,318:INFO:discord: DB Loaded.
+2020-07-06 14:08:42,236:INFO:discord.client: logging in using static token
+2020-07-06 14:08:43,258:INFO:discord.gateway: Shard ID 0 has sent the IDENTIFY payload.
+2020-07-06 14:08:43,511:INFO:discord.gateway: Shard ID 0 has connected to Gateway: ["gateway-prd-main-x4j4",{"micros":57382,"calls":["discord-sessions-prd-1-25",{"micros":55298,"calls":["start_session",{"micros":45736,"calls":["api-prd-main-790p",{"micros":40486,"calls":["get_user",{"micros":5015},"add_authorized_ip",{"micros":1529},"get_guilds",{"micros":2415},"coros_wait",{"micros":2}]}]},"guilds_connect",{"micros":8,"calls":[]},"presence_connect",{"micros":1,"calls":[]}]}]}] (Session ID: 07b21b2069778f81ca2f3872e8eb3682).
+2020-07-06 14:08:45,522:INFO:discord: Bot online.

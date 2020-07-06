@@ -4,6 +4,7 @@ import json
 import os
 import logging
 import nest_asyncio
+import pickle
 from discord.ext import commands
 from modules import jbot_db
 from modules import custom_errors

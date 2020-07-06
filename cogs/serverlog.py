@@ -107,7 +107,55 @@ class ServerLog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_update(self, before, after):
-        pass
+        embed = discord.Embed(title='서버 업데이트됨',
+                              colour=discord.Color.lighter_grey())
+        embed.set_author(name=after.name, icon_url=after.icon_url)
+        count = 0
+        not_for_this = False #emojis, text_channels, members, roles, member_count
+        else_list = [] #banner, icon
+        if before.emojis != after.emojis or before.text_channels != after.text_channels or before.members != after.members or before.roles != after.roles or before.member_count != after.member_count:
+            not_for_this = True
+        if before.banner != after.banner:
+            else_list.append("서버 배너")
+        if before.icon != after.icon:
+            else_list.append("서버 아이콘")
+        if before.name != after.name:
+            embed.add_field(name='서버 이름', value=f'{before.name} -> {after.name}', inline=False)
+            count += 1
+        if before.region != after.region:
+            embed.add_field(name='서버 지역', value=f'{before.region} -> {after.region}', inline=False)
+            count += 1
+        if before.verification_level != after.verification_level:
+            embed.add_field(name='서버 보안 수준', value=f'{before.verification_level} -> {after.verification_level}', inline=False)
+            count += 1
+        if before.owner != after.owner:
+            embed.add_field(name='서버 소유자', value=f'{before.owner.display_name} -> {after.owner.mention}', inline=False)
+            count += 1
+        if before.system_channel != after.system_channel:
+            if before.system_channel is None:
+                before_sys = "없음"
+            else:
+                before_sys = before.system_channel.mention
+            if after.system_channel is None:
+                after_sys = "없음"
+            else:
+                after_sys = after.system_channel.mention
+            embed.add_field(name="시스템 메시지 채널", value=f"{before_sys} -> {after_sys}", inline=False)
+            count += 1
+        if before.premium_tier != after.premium_tier:
+            embed.add_field(name="니트로 부스트 레벨", value=f"{before.premium_tier}레벨 -> {after.premium_tier}레벨", inline=False)
+            count += 1
+        if before.premium_subscription_count != after.premium_subscription_count:
+            embed.add_field(name="니트로 부스트 수", value=f"{before.premium_subscription_count}개 -> {after.premium_subscription_count}개", inline=False)
+            count += 1
+        if bool(else_list):
+            embed.add_field(name="기타 변경됨", value=', '.join(else_list), inline=False)
+            count += 1
+        if count == 0:
+            if not_for_this is True:
+                return
+            embed.add_field(name="기타 변경됨", value="변경된 내용을 찾을 수 없습니다. (봇이 감지할 수 없는 부분이 변경된 경우)", inline=False)
+        await admin.send_to_log(after, embed)
 
     @commands.Cog.listener()
     async def on_guild_role_create(self, role):
