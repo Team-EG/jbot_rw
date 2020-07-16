@@ -66,11 +66,6 @@ class Dev(commands.Cog):
             embed.add_field(name="상태설정", value="봇의 상태를 변경합니다.")
             await ctx.send(embed=embed)
 
-    @dev.command(name="캐시리셋")
-    async def cache_reset(self, ctx):
-        await db_cache.reload_cache(self.jbot_db_global, "guild_setup")
-        await ctx.send("캐시 리셋완료")
-
     @dev.command(name="상태설정")
     async def set_status(self, ctx, status=None):
         await self.bot.change_presence(activity=discord.Game(str(status)))

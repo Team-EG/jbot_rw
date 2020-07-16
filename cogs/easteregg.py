@@ -25,15 +25,17 @@ class EasterEgg(commands.Cog):
     def cog_unload(self):
         loop.run_until_complete(self.jbot_db_global.close_db())
 
-    @commands.command(name="이스터에그")
-    async def easteregg(self, ctx):
-        num = 1
-        embed = discord.Embed(title="찾은 이스터에그", description=f"{ctx.author.mention}님은 얼마나 찾으셨을까요?")
+    async def cog_before_invoke(self, ctx):
         try:
             got_list = (await self.jbot_db_global.res_sql("SELECT * FROM easteregg WHERE user_id=?", (ctx.author.id,)))[0]
         except IndexError:
             await self.jbot_db_global.exec_sql("INSERT INTO easteregg(user_id) VALUES (?)", (ctx.author.id,))
-            got_list = (await self.jbot_db_global.res_sql("SELECT * FROM easteregg WHERE user_id=?", (ctx.author.id,)))[0]
+
+    @commands.command(name="이스터에그")
+    async def easteregg(self, ctx):
+        num = 1
+        embed = discord.Embed(title="찾은 이스터에그", description=f"{ctx.author.mention}님은 얼마나 찾으셨을까요?")
+        got_list = (await self.jbot_db_global.res_sql("SELECT * FROM easteregg WHERE user_id=?", (ctx.author.id,)))[0]
         for k, v in got_list.items():
             if k != "user_id":
                 if v == 0:
