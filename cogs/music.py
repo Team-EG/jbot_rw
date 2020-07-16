@@ -354,7 +354,7 @@ class Music(commands.Cog):
         if ctx.invoked_subcommand is None:
             with open("cache/guild_setup.json", "r") as f:
                 guild_setup = json.load(f)
-            playlist_list = await self.jbot_db_global.get_from_db("*", "playlist", "user_id", ctx.author.id)
+            playlist_list = await self.jbot_db_global.res_sql("SELECT * FROM playlist WHERE user_id=?", (ctx.author.id,))
             embed = discord.Embed(title="재생목록",
                                   description=f"영상 {len(playlist_list)}개\n"
                                               f"영상 추가는 `{guild_setup[str(ctx.guild.id)]['prefix']}재생목록 추가` 명령어로, 영상 제거는 `{guild_setup[str(ctx.guild.id)]['prefix']}재생목록 제거` 명령어를 이용해주세요.",
@@ -394,9 +394,7 @@ class Music(commands.Cog):
         if not res:
             reject = discord.Embed(title="재생목록 추가", description="재생목록 추가가 취소되었습니다.")
             return await msg.edit(embed=reject)
-        await self.jbot_db_global.insert_db("playlist", "user_id", ctx.author.id)
-        await self.jbot_db_global.update_db("playlist", "youtube_link", vid_url, "user_id", ctx.author.id)
-        await self.jbot_db_global.update_db("playlist", "title", vid_title, "user_id", ctx.author.id)
+        await self.jbot_db_global.exec_sql("INSERT INTO playlist(user_id, youtube_link, title) VALUES (?, ?, ?)", (ctx.author.id, vid_url, vid_title))
         succeed = discord.Embed(title="재생목록 추가", description="이 영상을 재생목록에 추가했습니다.")
         await msg.edit(embed=succeed)
 
@@ -406,13 +404,11 @@ class Music(commands.Cog):
         embed = discord.Embed(title="재생목록 제거", description="정말로 이 영상을 재생목록에 제거할까요?")
         try:
             if title.startswith("https://") or title.startswith("youtube.com"):
-                info = await self.jbot_db_global.res_sql(
-                    f"SELECT * FROM playlist WHERE `playlist`.`user_id` = '{ctx.author.id}' AND `playlist`.`youtube_link` = '{title}'")
+                info = await self.jbot_db_global.res_sql("SELECT * FROM playlist WHERE user_id=? AND youtube_link=?", (ctx.author.id, title))
                 vid_url = info[0]["youtube_link"]
                 vid_title = info[0]["title"]
             else:
-                info = await self.jbot_db_global.res_sql(
-                    f"SELECT * FROM playlist WHERE `playlist`.`user_id` = '{ctx.author.id}' AND `playlist`.`title` = '{title}'")
+                info = await self.jbot_db_global.res_sql("SELECT * FROM playlist WHERE user_id=? AND title=?", (ctx.author.id, title))
                 vid_url = info[0]["youtube_link"]
                 vid_title = info[0]["title"]
         except IndexError:
@@ -425,8 +421,7 @@ class Music(commands.Cog):
             reject = discord.Embed(title="재생목록 제거", description="재생목록 제거가 취소되었습니다.")
             return await msg.edit(embed=reject)
         succeed = discord.Embed(title="재생목록 제거", description="이 영상을 재생목록에 제거했습니다.")
-        await self.jbot_db_global.exec_sql(
-            f"DELETE FROM `playlist` WHERE `playlist`.`user_id` = '{ctx.author.id}' AND `playlist`.`youtube_link` = '{vid_url}'")
+        await self.jbot_db_global.exec_sql("DELETE FROM playlist WHERE user_id=? AND youtube_link=?", (ctx.author.id, vid_url))
         await msg.edit(embed=succeed)
 
 

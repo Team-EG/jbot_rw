@@ -6,7 +6,7 @@ from . import jbot_db, confirm
 from discord.ext import commands
 
 
-async def warn(jbot_db_warns: jbot_db.JBotDB, member: discord.Member, issued_by: discord.Member, reason=None, ctx: commands.Context = None,
+async def warn(jbot_db_global: jbot_db.JBotDB, jbot_db_warns: jbot_db.JBotDB, member: discord.Member, issued_by: discord.Member, reason=None, ctx: commands.Context = None,
                message: discord.Message = None):
     current_time = time.strftime('%Y%m%d%H%M%S')
     global ctx_or_message
@@ -25,49 +25,35 @@ async def warn(jbot_db_warns: jbot_db.JBotDB, member: discord.Member, issued_by:
     embed.add_field(name="사유", value=reason)
     embed.set_footer(text=datetime.datetime.today().strftime('%Y-%m-%d %X'))
     await ctx_or_message.channel.send(embed=embed)
-    await send_to_log(guild, embed)
-    column_set = jbot_db.set_column(date=None, user_id=None, reason=None, issued_by=None)
-    lvl_exist = await jbot_db_warns.check_if_table_exist(f"{guild.id}_warns")
-    if not lvl_exist:
-        await jbot_db_warns.create_table("jbot_db_warns", f"{guild.id}_warns", column_set)
-    await jbot_db_warns.insert_db(f"{guild.id}_warns", "date", current_time)
-    await jbot_db_warns.update_db(f"{guild.id}_warns", "user_id", member.id, "date", current_time)
-    await jbot_db_warns.update_db(f"{guild.id}_warns", "reason", reason, "date", current_time)
-    await jbot_db_warns.update_db(f"{guild.id}_warns", "issued_by", issued_by.id, "date", current_time)
+    await send_to_log(jbot_db_global, guild, embed)
+    column_set = jbot_db.set_column({"name": "user_id", "type": "INTEGER", "default": False},
+                                    {"name": "date", "type": "TEXT", "default": False},
+                                    {"name": "issued_by", "type": "INTEGER", "default": False},
+                                    {"name": "reason", "type": "TEXT", "default": False})
+    lvl_exist = await jbot_db_warns.res_sql("SELECT name FROM sqlite_master WHERE type='table'", return_raw=True)
+    if f"{guild.id}_warns" not in lvl_exist:
+        await jbot_db_warns.exec_sql(f"""CREATE TABLE "{guild.id}_warns" ( {column_set} )""")
+    await jbot_db_warns.exec_sql(f"""INSERT INTO "{guild.id}_warns" VALUES (?, ?, ?, ?)""", (member.id, current_time, issued_by.id, reason))
 
 
 async def update_setup(jbot_db_global: jbot_db.JBotDB, bot: commands.Bot, ctx: commands.Context, msg: discord.Message,
-                       embed_list: list, setup_type: str, to_change: str):
-    with open("cache/guild_setup.json", "r") as f:
-        guild_data = json.load(f)
+                       embed_list: list, setup_type: str, to_change):
     embed_ok = embed_list[0]
     embed_no = embed_list[1]
     embed_cancel = embed_list[2]
     res = await confirm.confirm(bot, ctx, msg)
     if res is True:
-        await jbot_db_global.update_db("guild_setup", setup_type, to_change, "guild_id", ctx.guild.id)
-        if to_change == "None":
-            to_change = None
-        elif to_change == "False":
-            to_change = False
-        elif to_change == "True":
-            to_change = bool(to_change)
-        guild_data[str(ctx.guild.id)][setup_type] = to_change
+        await jbot_db_global.exec_sql(f"UPDATE guild_setup SET {setup_type}=? WHERE guild_id=?", (to_change, ctx.guild.id))
         await msg.edit(embed=embed_ok)
     elif res is False:
         await msg.edit(embed=embed_no)
     elif res is None:
         await msg.edit(embed=embed_cancel)
-    with open("cache/guild_setup.json", "w") as f:
-        json.dump(guild_data, f, indent=4)
 
 
-async def send_to_log(guild: discord.Guild, embed: discord.Embed):
-    with open("cache/guild_setup.json", "r") as f:
-        guild_data = json.load(f)
-    if guild_data[str(guild.id)]["log_channel"] is None:
-        return
-    log_channel = guild.get_channel(int(guild_data[str(guild.id)]["log_channel"]))
+async def send_to_log(jbot_db_global: jbot_db.JBotDB, guild: discord.Guild, embed: discord.Embed):
+    guild_data = await jbot_db_global.res_sql("SELECT log_channel FROM guild_setup WHERE guild_id=?", (guild.id,))
+    log_channel = guild.get_channel(guild_data[0]["log_channel"])
     if log_channel is None:
         return
     await log_channel.send(embed=embed)

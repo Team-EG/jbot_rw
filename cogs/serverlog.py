@@ -1,11 +1,12 @@
 import discord
 from discord.ext import commands
-from modules import admin
+from modules import admin, jbot_db
 
 
 class ServerLog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.jbot_db_global = jbot_db.JBotDB("jbot_db_global")
 
     @commands.Cog.listener()
     async def on_message_delete(self, message):
@@ -16,7 +17,7 @@ class ServerLog(commands.Cog):
                               colour=discord.Color.red())
         embed.set_author(name=message.author.display_name + f" ({message.author})", icon_url=message.author.avatar_url)
         embed.add_field(name="메시지 내용", value=message.content)
-        await admin.send_to_log(message.guild, embed)
+        await admin.send_to_log(self.jbot_db_global, message.guild, embed)
 
     @commands.Cog.listener()
     async def on_raw_bulk_message_delete(self, payload):
@@ -28,7 +29,7 @@ class ServerLog(commands.Cog):
                               description=channel.mention + f" (`#{channel.name}`)",
                               colour=discord.Color.red())
         embed.add_field(name='삭제된 메시지 개수', value=str(len(payload.message_ids)), inline=False)
-        await admin.send_to_log(guild, embed)
+        await admin.send_to_log(self.jbot_db_global, guild, embed)
 
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
@@ -42,21 +43,21 @@ class ServerLog(commands.Cog):
             return
         embed.add_field(name='기존 내용', value=f'{before.content}')
         embed.add_field(name='수정된 내용', value=f'{after.content}', inline=False)
-        await admin.send_to_log(after.guild, embed)
+        await admin.send_to_log(self.jbot_db_global, after.guild, embed)
 
     @commands.Cog.listener()
     async def on_guild_channel_delete(self, channel):
         embed = discord.Embed(title='채널 삭제됨', colour=discord.Color.red())
         embed.set_author(name=channel.guild.name, icon_url=channel.guild.icon_url)
         embed.add_field(name='채널 이름', value=f'`#{channel.name}`', inline=False)
-        await admin.send_to_log(channel.guild, embed)
+        await admin.send_to_log(self.jbot_db_global, channel.guild, embed)
 
     @commands.Cog.listener()
     async def on_guild_channel_create(self, channel):
         embed = discord.Embed(title='채널 생성됨', colour=discord.Color.green())
         embed.set_author(name=channel.guild.name, icon_url=channel.guild.icon_url)
         embed.add_field(name='채널 이름', value=channel.mention + f' (`#{channel.name}`)', inline=False)
-        await admin.send_to_log(channel.guild, embed)
+        await admin.send_to_log(self.jbot_db_global, channel.guild, embed)
 
     @commands.Cog.listener()
     async def on_guild_channel_update(self, before, after):
@@ -103,7 +104,7 @@ class ServerLog(commands.Cog):
             count += 1
         if count == 0:
             embed.add_field(name="기타 변경됨", value="변경된 내용을 찾을 수 없습니다. (채널 주제, NSFW, 슬로우모드 등)")
-        await admin.send_to_log(after.guild, embed)
+        await admin.send_to_log(self.jbot_db_global, after.guild, embed)
 
     @commands.Cog.listener()
     async def on_guild_update(self, before, after):
@@ -155,14 +156,14 @@ class ServerLog(commands.Cog):
             if not_for_this is True:
                 return
             embed.add_field(name="기타 변경됨", value="변경된 내용을 찾을 수 없습니다. (봇이 감지할 수 없는 부분이 변경된 경우)", inline=False)
-        await admin.send_to_log(after, embed)
+        await admin.send_to_log(self.jbot_db_global, after, embed)
 
     @commands.Cog.listener()
     async def on_guild_role_create(self, role):
         embed = discord.Embed(title='역할 생성됨', colour=discord.Color.green())
         embed.set_author(name=role.guild.name, icon_url=role.guild.icon_url)
         embed.add_field(name='역할', value=f'{role.mention} (`@{role.name}`)', inline=False)
-        await admin.send_to_log(role.guild, embed)
+        await admin.send_to_log(self.jbot_db_global, role.guild, embed)
 
     @commands.Cog.listener()
     async def on_guild_role_update(self, before, after):
@@ -173,7 +174,7 @@ class ServerLog(commands.Cog):
         embed = discord.Embed(title='역할 삭제됨', colour=discord.Color.red())
         embed.set_author(name=role.guild.name, icon_url=role.guild.icon_url)
         embed.add_field(name='역할 이름', value=f'`@{role.name}`', inline=False)
-        await admin.send_to_log(role.guild, embed)
+        await admin.send_to_log(self.jbot_db_global, role.guild, embed)
 
     @commands.Cog.listener()
     async def on_guild_emojis_update(self, guild, before, after):
@@ -213,20 +214,20 @@ class ServerLog(commands.Cog):
         embed.set_author(name=invite.guild.name, icon_url=invite.guild.icon_url)
         embed.add_field(name="초대코드를 생성한 사람", value=invite.inviter.mention + f" (`{invite.inviter}`)", inline=False)
         embed.add_field(name="초대코드", value=invite.url)
-        await admin.send_to_log(invite.guild, embed)
+        await admin.send_to_log(self.jbot_db_global, invite.guild, embed)
 
     @commands.Cog.listener()
     async def on_invite_delete(self, invite):
         embed = discord.Embed(title="초대코드 삭제됨", colour=discord.Color.red())
         embed.set_author(name=invite.guild.name, icon_url=invite.guild.icon_url)
         embed.add_field(name="삭제된 초대코드", value=invite.url)
-        await admin.send_to_log(invite.guild, embed)
+        await admin.send_to_log(self.jbot_db_global, invite.guild, embed)
 
     @commands.command(name="로그테스트")
     async def log_test(self, ctx):
         embed = discord.Embed(title="로그 테스트", description="로그가 정상적으로 보내졌네요!",
                               color=discord.Colour.from_rgb(225, 225, 225))
-        await admin.send_to_log(ctx.guild, embed)
+        await admin.send_to_log(self.jbot_db_global, ctx.guild, embed)
 
 
 def setup(bot):

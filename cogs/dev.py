@@ -6,7 +6,6 @@ import datetime
 import asyncio
 from discord.ext import commands
 from modules import custom_errors
-from modules import db_cache
 from modules import jbot_db
 from modules import confirm
 

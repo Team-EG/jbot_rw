@@ -1,0 +1,5 @@
+2020-07-16 15:02:36,548:INFO:discord: DB Loaded.
+2020-07-16 15:02:38,167:INFO:discord.client: logging in using static token
+2020-07-16 15:02:39,285:INFO:discord.gateway: Shard ID 0 has sent the IDENTIFY payload.
+2020-07-16 15:02:39,589:INFO:discord.gateway: Shard ID 0 has connected to Gateway: ["gateway-prd-main-cv6k",{"micros":100325,"calls":["discord-sessions-prd-1-33",{"micros":96850,"calls":["start_session",{"micros":93247,"calls":["api-prd-main-pq6r",{"micros":89295,"calls":["get_user",{"micros":4525},"add_authorized_ip",{"micros":16187},"get_guilds",{"micros":2488},"coros_wait",{"micros":3}]}]},"guilds_connect",{"micros":23,"calls":[]},"presence_connect",{"micros":800,"calls":[]}]}]}] (Session ID: 6e474eda786a513bb8f29b59e3a90686).
+2020-07-16 15:02:41,596:INFO:discord: Bot online.

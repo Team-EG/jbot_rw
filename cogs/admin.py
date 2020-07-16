@@ -10,6 +10,7 @@ loop = asyncio.get_event_loop()
 class Admin(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.jbot_db_global = jbot_db.JBotDB("jbot_db_global")
         self.jbot_db_warns = jbot_db.JBotDB("jbot_db_warns")
 
     def cog_unload(self):
@@ -22,7 +23,7 @@ class Admin(commands.Cog):
 
     @commands.command(name="경고")
     async def warn(self, ctx, member: discord.Member, *, reason="없음"):
-        await admin.warn(self.jbot_db_warns, member, reason=reason, issued_by=ctx.author, ctx=ctx)
+        await admin.warn(self.jbot_db_global, self.jbot_db_warns, member, reason=reason, issued_by=ctx.author, ctx=ctx)
 
     @commands.group(name="정리")
     async def purge(self, ctx, amount: typing.Optional[int] = None):

@@ -37,24 +37,12 @@ class JBotDB:
         await self.db.commit()
         return
 
-    async def res_sql(self, line, param: iter = None) -> list:
+    async def res_sql(self, line, param: iter = None, return_raw=False) -> list:
         async with self.db.execute(line, param) as cur:
             rows = await cur.fetchall()
-            return [dict(x) for x in rows]
-
-    async def check_if_table_exist(self, table_name) -> bool:
-        async with self.db.execute(f"SHOW TABLES LIKE ?", (table_name,)) as cur:
-            res = await cur.fetchall()
-            return table_name in str(res)
+            if not return_raw:
+                return [dict(x) for x in rows]
+            return [x for x in rows]
 
     async def close_db(self) -> None:
         await self.db.close()
-
-
-if __name__ == "__main__":
-    #print(set_column({"name": "guild_id", "type": "INTEGER", "default": False}, {"name": "name", "type": "TEXT", "default": None}))
-    jbot_db = JBotDB("jbot_db_global")
-    #loop.run_until_complete(jbot_db.exec_sql("""CREATE TABLE ex ("guild_id" INTEGER NOT NULL PRIMARY KEY, "name" TEXT NULL DEFAULT NULL)"""))
-    #loop.run_until_complete(jbot_db.exec_sql("INSERT INTO ex VALUES (?, ?)", (123, "gulag")))
-    print(loop.run_until_complete(jbot_db.res_sql("SELECT * FROM ex WHERE ?=?", ("guild_id", '123'))))
-    loop.run_until_complete(jbot_db.close_db())
