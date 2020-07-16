@@ -111,10 +111,9 @@ class Music(commands.Cog):
 
     @commands.command(name="재생", aliases=["play", "p", "ㅔ", "대기", "queue", "q", "ㅂ"])
     async def play(self, ctx, *, url):
-        with open("cache/guild_setup.json", "r") as f:
-            guild_setup = json.load(f)
+        guild_setup = await self.jbot_db_global.res_sql("""SELECT prefix FROM guild_setup WHERE guild_id=?""", (ctx.guild.id,))
         msg = await ctx.send(
-            f"잠시만 기다려주세요...\n팁: 만약에 너무 오랫동안 재생이 안된다면 `강제연결해제` (`{guild_setup[str(ctx.guild.id)]['prefix']}강제연결해제`) 명령어를 사용해주세요.")
+            f"잠시만 기다려주세요...\n팁: 만약에 너무 오랫동안 재생이 안된다면 `강제연결해제` (`{guild_setup[0]['prefix']}강제연결해제`) 명령어를 사용해주세요.")
         embed = discord.Embed(title="유튜브 음악 재생", color=discord.Colour.from_rgb(255, 0, 0))
         user_voice = ctx.message.author.voice
         if user_voice is None:

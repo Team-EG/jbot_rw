@@ -52,7 +52,7 @@ class EasterEgg(commands.Cog):
             amount = 15
         if amount < 1:
             amount = 1
-        gulag = self.bot.get_emoji(658581939015385129)
+        gulag = self.bot.get_emoji(733217784950947900)
         await ctx.send(str(gulag) * amount)
         exist = await self.jbot_db_global.res_sql("SELECT gulag FROM easteregg WHERE user_id=?", (ctx.author.id,))
         if bool(exist[0]["gulag"]):

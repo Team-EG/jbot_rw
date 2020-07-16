@@ -1,5 +1,10 @@
-2020-07-16 15:07:56,621:INFO:discord: DB Loaded.
-2020-07-16 15:07:57,365:INFO:discord.client: logging in using static token
-2020-07-16 15:07:58,429:INFO:discord.gateway: Shard ID 0 has sent the IDENTIFY payload.
-2020-07-16 15:07:58,712:INFO:discord.gateway: Shard ID 0 has connected to Gateway: ["gateway-prd-main-f4k8",{"micros":83327,"calls":["discord-sessions-prd-1-76",{"micros":77765,"calls":["start_session",{"micros":69985,"calls":["api-prd-main-0rpr",{"micros":57724,"calls":["get_user",{"micros":5515},"add_authorized_ip",{"micros":1252},"get_guilds",{"micros":1252},"coros_wait",{"micros":1}]}]},"guilds_connect",{"micros":10,"calls":[]},"presence_connect",{"micros":3934,"calls":[]}]}]}] (Session ID: 1d9bf65d144fcad3fbe2ffa71852ff77).
-2020-07-16 15:08:00,726:INFO:discord: Bot online.
+2020-07-16 16:13:18,824:INFO:discord: DB Loaded.
+2020-07-16 16:13:19,644:INFO:discord.client: logging in using static token
+2020-07-16 16:13:20,649:INFO:discord.gateway: Shard ID 0 has sent the IDENTIFY payload.
+2020-07-16 16:13:20,886:INFO:discord.gateway: Shard ID 0 has connected to Gateway: ["gateway-prd-main-rvcm",{"micros":40567,"calls":["discord-sessions-prd-1-58",{"micros":39513,"calls":["start_session",{"micros":30932,"calls":["api-prd-main-p2jm",{"micros":27410,"calls":["get_user",{"micros":2687},"add_authorized_ip",{"micros":1711},"get_guilds",{"micros":1720},"coros_wait",{"micros":1}]}]},"guilds_connect",{"micros":4,"calls":[]},"presence_connect",{"micros":2084,"calls":[]}]}]}] (Session ID: 2b1bb27490b216b82e65edfd8b660d2b).
+2020-07-16 16:13:22,900:INFO:discord: Bot online.
+2020-07-16 16:13:45,071:INFO:discord.voice_client: Connecting to voice...
+2020-07-16 16:13:45,071:INFO:discord.voice_client: Starting voice handshake...
+2020-07-16 16:13:45,467:INFO:discord.voice_client: Voice handshake complete. Endpoint found south-korea313.discord.media (IP: 162.159.130.235)
+2020-07-16 16:13:45,598:INFO:discord.gateway: selected the voice protocol for use (xsalsa20_poly1305_lite)
+2020-07-16 16:13:45,606:INFO:discord.gateway: received secret key for voice connection
