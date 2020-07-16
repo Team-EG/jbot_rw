@@ -4,11 +4,9 @@ import json
 import os
 import logging
 import nest_asyncio
-import pickle
 from discord.ext import commands
 from modules import jbot_db
 from modules import custom_errors
-from modules import db_cache
 
 nest_asyncio.apply()
 loop = asyncio.get_event_loop()
@@ -25,10 +23,7 @@ for x in temp_file_list:
     os.remove("temp/"+x)
 print("Done!")
 
-print("Connecting to DB and downloading data from DB...")
 jbot_db_global = jbot_db.JBotDB("jbot_db_global")
-loop.run_until_complete(db_cache.init_cache(jbot_db_global, "guild_setup"))
-print("Finished!")
 logger.info("DB Loaded.")
 
 
@@ -38,12 +33,14 @@ def get_bot_settings():
 
 
 async def get_prefix(bot, message):
-    cached_data = await db_cache.load_cache("guild_setup")
+    data = (await jbot_db_global.res_sql("""SELECT prefix FROM guild_setup WHERE guild_id=?""", (message.guild.id,)))
     try:
-        guild_prefix = cached_data[str(message.guild.id)]["prefix"]
+        guild_prefix = data[0]["prefix"]
+    except IndexError:
+        await jbot_db_global.exec_sql("INSERT INTO guild_setup(guild_id) VALUES (?)", (message.guild.id,))
+        data = (await jbot_db_global.res_sql("""SELECT prefix FROM guild_setup WHERE guild_id=?""", (message.guild.id,)))
+        guild_prefix = data[0]["prefix"]
     except KeyError:
-        await message.channel.send("이런! 캐시에서 서버 설정을 불러오던 도중 문제가 발생했어요! 계속 이 오류가 나온다면 먼저 저에게 관리자와 메시지 보내기 권한을 없애준 다음 `eunwoo1104#9600`으로 DM을 보내주세요.")
-        await db_cache.reload_cache(jbot_db_global, "guild_setup")
         guild_prefix = "제이봇 "
     return commands.when_mentioned_or(*[guild_prefix])(bot, message)
 
@@ -95,20 +92,6 @@ async def cog(ctx, choose, cog_name=None):
         embed2 = discord.Embed(title="Cog 명령어", description=f"`{choose}` 옵션은 존재하지 않습니다.", colour=discord.Colour.red())
     await msg.edit(embed=embed2)
 
-
-@bot.command(name="종료")
-@commands.check(is_whitelisted)
-async def shutdown(ctx):
-    for cog_file in os.listdir("./cogs"):
-        if cog_file.endswith('.py'):
-            bot.unload_extension(f'cogs.{cog_file.replace(".py", "")}')
-    await jbot_db_global.close_db()
-    await ctx.send("봇을 종료할께요. 봇 로그 파일은 DM을 확인해주세요.")
-    log_file = discord.File("jbot.log")
-    await ctx.author.send(file=log_file)
-    await bot.close()
-    print("Bye!")
-    os._exit(0)
 
 # cog를 불러오는 스크립트
 for filename in os.listdir("./cogs"):

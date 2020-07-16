@@ -5,6 +5,16 @@ from discord.ext import commands
 from modules import jbot_db
 
 loop = asyncio.get_event_loop()
+easteregg_info = {
+    "gulag": "???: 굴라크 가실래요?",
+    "anyhorse": "아무말",
+    "credit": "핵넷은 OST가 너무 좋군요."
+}
+easteregg_how_to = {
+    "gulag": "굴라크 명령어를 사용하세요.",
+    "anyhorse": "아무말 명령어를 사용하세요.",
+    "credit": "히든 크레딧을 찾으세요."
+}
 
 
 class EasterEgg(commands.Cog):
@@ -15,21 +25,20 @@ class EasterEgg(commands.Cog):
     def cog_unload(self):
         loop.run_until_complete(self.jbot_db_global.close_db())
 
+    async def cog_before_invoke(self, ctx):
+        try:
+            got_list = (await self.jbot_db_global.res_sql("SELECT * FROM easteregg WHERE user_id=?", (ctx.author.id,)))[0]
+        except IndexError:
+            await self.jbot_db_global.exec_sql("INSERT INTO easteregg(user_id) VALUES (?)", (ctx.author.id,))
+
     @commands.command(name="이스터에그")
     async def easteregg(self, ctx):
-        global easteregg_info, easteregg_how_to
         num = 1
         embed = discord.Embed(title="찾은 이스터에그", description=f"{ctx.author.mention}님은 얼마나 찾으셨을까요?")
-        easteregg_info = (await self.jbot_db_global.get_from_db("easteregg", "*", "user_id", "NOTUSER"))[0]
-        easteregg_how_to = (await self.jbot_db_global.get_from_db("easteregg", "*", "user_id", "NOTUSER2"))[0]
-        try:
-            got_list = (await self.jbot_db_global.get_from_db("easteregg", "*", "user_id", str(ctx.author.id)))[0]
-        except IndexError:
-            await self.jbot_db_global.insert_db("easteregg", "user_id", str(ctx.author.id))
-            got_list = (await self.jbot_db_global.get_from_db("easteregg", "*", "user_id", str(ctx.author.id)))[0]
+        got_list = (await self.jbot_db_global.res_sql("SELECT * FROM easteregg WHERE user_id=?", (ctx.author.id,)))[0]
         for k, v in got_list.items():
-            if not k == "user_id":
-                if v == "False":
+            if k != "user_id":
+                if v == 0:
                     x = "???"
                 else:
                     x = easteregg_how_to[k]
@@ -45,7 +54,10 @@ class EasterEgg(commands.Cog):
             amount = 1
         gulag = self.bot.get_emoji(658581939015385129)
         await ctx.send(str(gulag) * amount)
-        await self.jbot_db_global.update_db("easteregg", "gulag", "True", "user_id", str(ctx.author.id))
+        exist = await self.jbot_db_global.res_sql("SELECT gulag FROM easteregg WHERE user_id=?", (ctx.author.id,))
+        if bool(exist[0]["gulag"]):
+            return
+        await self.jbot_db_global.exec_sql("UPDATE easteregg SET gulag=? WHERE user_id=?", (1, ctx.author.id))
 
     @commands.command(name="멋진굴라크")
     async def better_gulag(self, ctx):
@@ -62,7 +74,10 @@ class EasterEgg(commands.Cog):
                      '<:any_horses:714357346029273148>',
                      'https://cdn.discordapp.com/attachments/568962070230466573/714854748754280582/ddd84f9331954aae.png']
         await ctx.send(f'{random.choice(responses)}')
-        await self.jbot_db_global.update_db("easteregg", "anyhorse", "True", "user_id", str(ctx.author.id))
+        exist = await self.jbot_db_global.res_sql("SELECT anyhorse FROM easteregg WHERE user_id=?", (ctx.author.id,))
+        if bool(exist[0]["anyhorse"]):
+            return
+        await self.jbot_db_global.exec_sql("UPDATE easteregg SET anyhorse=? WHERE user_id=?", (1, ctx.author.id))
 
 
 def setup(bot):

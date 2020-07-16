@@ -24,7 +24,7 @@ class Level(commands.Cog):
     async def level(self, ctx, user: discord.Member = None):
         if user is None:
             user = ctx.author
-        lvl_data = await self.jbot_db_level.get_from_db("*", f"{ctx.guild.id}_level", "user_id", str(user.id))
+        lvl_data = await self.jbot_db_level.res_sql(f"""SELECT * FROM "{ctx.guild.id}_level" WHERE user_id=?""", (user.id,))
         lvl_data = lvl_data[0]
         lvl = lvl_data["lvl"]
         exp = lvl_data["exp"]
@@ -36,9 +36,7 @@ class Level(commands.Cog):
 
     @commands.command(name="랭크")
     async def rank(self, ctx):
-        lvl_data = await self.jbot_db_level.get_db("*", f"{ctx.guild.id}_level")
-        # sorted_list = await self.jbot_db_level.res_sql(f"SELECT * FROM {ctx.guild.id}_level ORDER BY exp DESC;")
-        sorted_list = reversed(sorted(lvl_data, key=lambda x: int(x["exp"])))
+        sorted_list = await self.jbot_db_level.res_sql(f"""SELECT * FROM "{ctx.guild.id}_level" ORDER BY exp DESC""")
         embed = discord.Embed(title="랭크", description=str(ctx.guild.name), color=discord.Colour.from_rgb(225, 225, 225))
         lvl = 1
         for x in sorted_list:
@@ -50,35 +48,6 @@ class Level(commands.Cog):
             lvl += 1
         embed.set_footer(text=ctx.author, icon_url=ctx.author.avatar_url)
         await ctx.send(embed=embed)
-
-    @commands.command(name="레벨픽스")
-    async def lvl_fix(self, ctx, user: discord.Member = None):
-        if user is None:
-            user = ctx.author
-        lvl_data = await self.jbot_db_level.get_from_db("*", f"{ctx.guild.id}_level", "user_id", str(user.id))
-        lvl_data = lvl_data[0]
-        curr_exp = int(lvl_data["exp"])
-        lvl = int(await lvl_calc.calc_lvl(curr_exp))
-        await self.jbot_db_level.update_db(f"{ctx.guild.id}_level", "lvl", lvl, "user_id", str(user.id))
-        await ctx.send("완료")
-
-    @commands.command(name="레벨전체픽스")
-    async def lvl_all_fix(self, ctx):
-        for x in self.bot.guilds:
-            print(x)
-            for y in x.members:
-                print(y)
-                user = y
-                lvl_data = await self.jbot_db_level.get_from_db("*", f"{x.id}_level", "user_id", str(user.id))
-                if str(lvl_data) == "()":
-                    continue
-                print(lvl_data)
-                lvl_data = lvl_data[0]
-                curr_exp = int(lvl_data["exp"])
-                lvl = int(await lvl_calc.calc_lvl(curr_exp))
-                await self.jbot_db_level.update_db(f"{x.id}_level", "lvl", lvl, "user_id", str(user.id))
-                await ctx.send("완료")
-        await ctx.send("픽스 완료!")
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -108,26 +77,29 @@ class Level(commands.Cog):
         with open(f"temp/{message.guild.id}_time.json", "w") as f:
             json.dump(time_data, f, indent=4)
 
-        table_name = f"{message.guild.id}_level"
-        where = "user_id"
-        where_val = message.author.id
+        column_set = jbot_db.set_column({"name": "user_id", "type": "INTEGER", "default": False},
+                                        {"name": "exp", "type": "INTEGER", "default": 0},
+                                        {"name": "lvl", "type": "INTEGER", "default": 1})
+        lvl_exist = await self.jbot_db_level.res_sql("SELECT name FROM sqlite_master WHERE type='table'")
+        if f"{message.guild.id}_level" not in [x["name"] for x in lvl_exist]:
+            await self.jbot_db_level.exec_sql(f"""CREATE TABLE "{message.guild.id}_level" ( {column_set} )""")
 
-        curr_exp_and_lvl = await self.jbot_db_level.get_from_db("*", table_name, where, where_val)
+        curr_exp_and_lvl = await self.jbot_db_level.res_sql(f"""SELECT * FROM "{message.guild.id}_level" WHERE user_id=?""", (message.author.id,))
 
         xp_choice = random.randint(5, 25)
-        if str(curr_exp_and_lvl) == "()":
-            await self.jbot_db_level.insert_db(table_name, "user_id", message.author.id)
-            curr_exp_and_lvl = await self.jbot_db_level.get_from_db("*", table_name, where, where_val)
+        if not bool(curr_exp_and_lvl):
+            await self.jbot_db_level.exec_sql(f"""INSERT INTO "{message.guild.id}_level"(user_id) VALUES (?)""", (message.author.id,))
+            curr_exp_and_lvl = await self.jbot_db_level.res_sql(f"""SELECT * FROM "{message.guild.id}_level" WHERE user_id=?""", (message.author.id,))
         curr_exp = int(curr_exp_and_lvl[0]["exp"])
         curr_lvl = int(curr_exp_and_lvl[0]["lvl"])
         curr_exp += xp_choice
-        await self.jbot_db_level.update_db(table_name, "exp", curr_exp, where, where_val)
+        await self.jbot_db_level.exec_sql(f"""UPDATE "{message.guild.id}_level" SET exp=? WHERE user_id=?""", (curr_exp, message.author.id))
 
         can_lvl_up = await lvl_calc.can_lvl_up(curr_lvl, curr_exp)
         if not can_lvl_up:
             return
         curr_lvl += 1
-        await self.jbot_db_level.update_db(table_name, "lvl", curr_lvl, where, where_val)
+        await self.jbot_db_level.exec_sql(f"""UPDATE "{message.guild.id}_level" SET lvl=? WHERE user_id=?""", (curr_lvl, message.author.id))
 
 
 def setup(bot):

@@ -10,6 +10,7 @@ from modules import admin, jbot_db
 class Spam(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.jbot_db_global = jbot_db.JBotDB("jbot_db_global")
         self.jbot_db_warns = jbot_db.JBotDB("jbot_db_warns")
 
     @commands.Cog.listener()
@@ -52,7 +53,7 @@ class Spam(commands.Cog):
             await message.channel.send("굴라크")
         elif time_data[str(message.author.id)]["spam_count"] == 15:
             await message.channel.send("경고임 ㅅㄱ")
-            await admin.warn(self.jbot_db_warns, message.author, reason="도배 카운트 누적", issued_by=self.bot.user, message=message)
+            await admin.warn(jbot_db_global=self.jbot_db_global, jbot_db_warns=self.jbot_db_warns, member=message.author, reason="도배 카운트 누적", issued_by=self.bot.user, message=message)
 
 
 def setup(bot):

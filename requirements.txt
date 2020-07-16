@@ -4,6 +4,6 @@ youtube-dl
 beautifulsoup4
 pydustry
 requests
-aiomysql
+aiosqlite
 psutil
 nest-asyncio

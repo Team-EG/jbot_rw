@@ -1,11 +1,9 @@
 import discord
 import asyncio
-import json
 from discord.ext import commands
 from modules import custom_errors
 from modules import jbot_db
 from modules import admin
-from modules import db_cache
 
 loop = asyncio.get_event_loop()
 emoji_list = []
@@ -15,11 +13,9 @@ class GuildSetup(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.jbot_db_global = jbot_db.JBotDB("jbot_db_global")
-        self.jbot_db_level = jbot_db.JBotDB("jbot_db_level")
 
     def cog_unload(self):
         loop.run_until_complete(self.jbot_db_global.close_db())
-        loop.run_until_complete(self.jbot_db_level.close_db())
 
     async def cog_check(self, ctx):
         if not ctx.author == ctx.guild.owner:
@@ -34,12 +30,7 @@ class GuildSetup(commands.Cog):
     async def on_guild_join(self, guild):
         if guild is None:
             return
-        column_set = jbot_db.set_column(user_id=None, lvl=0, exp=0)
-        await self.jbot_db_global.insert_db("guild_setup", "guild_id", str(guild.id))
-        lvl_exist = await self.jbot_db_level.check_if_table_exist(f"{guild.id}_level")
-        if not lvl_exist:
-            await self.jbot_db_level.create_table("jbot_db_level", f"{guild.id}_level", column_set)
-        await db_cache.reload_cache(self.jbot_db_global, "guild_setup")
+        await self.jbot_db_global.exec_sql("INSERT INTO guild_setup(guild_id) VALUES (?)", (guild.id,))
 
         """try:
             perms = discord.Permissions(send_messages=False)
@@ -62,13 +53,12 @@ class GuildSetup(commands.Cog):
     async def on_guild_remove(self, guild):
         if guild is None:
             return
-        await self.jbot_db_global.delete_table("guild_setup", "guild_id", str(guild.id))
+        await self.jbot_db_global.exec_sql("DELETE FROM guild_setup WHERE guild_id=?", (guild.id,))
 
     @commands.group(name="설정")
     async def settings(self, ctx):
         if ctx.invoked_subcommand is None:
-            with open("cache/guild_setup.json", "r") as f:
-                guild_data = (json.load(f))[str(ctx.guild.id)]
+            guild_data = (await self.jbot_db_global.res_sql("SELECT * FROM guild_setup WHERE guild_id=?", (ctx.guild.id,)))[0]
             for x in guild_data.keys():
                 if guild_data[x] is None:
                     guild_data[x] = "없음"

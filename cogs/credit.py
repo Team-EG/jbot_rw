@@ -45,7 +45,10 @@ class Credit(commands.Cog):
         voice.play(discord.FFmpegPCMAudio("https://jebserver.iptime.org/discord/jbot_credit.mp3"))
         voice.source = discord.PCMVolumeTransformer(voice.source)
         voice.source.volume = 0.3
-        await self.jbot_db_global.update_db("easteregg", "credit", "True", "user_id", str(ctx.author.id))
+        exist = await self.jbot_db_global.res_sql("SELECT credit FROM easteregg WHERE user_id=?", (ctx.author.id,))
+        if bool(exist[0]["credit"]):
+            return
+        await self.jbot_db_global.exec_sql("UPDATE easteregg SET credit=? WHERE user_id=?", (1, ctx.author.id))
         await asyncio.sleep(1)
         embed = discord.Embed(title="제이봇 크레딧", description="개발: Team EG", color=discord.Colour.from_rgb(225, 225, 225))
         embed.add_field(name="메인 개발자", value=str(eun))
