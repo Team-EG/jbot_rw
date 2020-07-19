@@ -1,10 +1,7 @@
-2020-07-16 16:13:18,824:INFO:discord: DB Loaded.
-2020-07-16 16:13:19,644:INFO:discord.client: logging in using static token
-2020-07-16 16:13:20,649:INFO:discord.gateway: Shard ID 0 has sent the IDENTIFY payload.
-2020-07-16 16:13:20,886:INFO:discord.gateway: Shard ID 0 has connected to Gateway: ["gateway-prd-main-rvcm",{"micros":40567,"calls":["discord-sessions-prd-1-58",{"micros":39513,"calls":["start_session",{"micros":30932,"calls":["api-prd-main-p2jm",{"micros":27410,"calls":["get_user",{"micros":2687},"add_authorized_ip",{"micros":1711},"get_guilds",{"micros":1720},"coros_wait",{"micros":1}]}]},"guilds_connect",{"micros":4,"calls":[]},"presence_connect",{"micros":2084,"calls":[]}]}]}] (Session ID: 2b1bb27490b216b82e65edfd8b660d2b).
-2020-07-16 16:13:22,900:INFO:discord: Bot online.
-2020-07-16 16:13:45,071:INFO:discord.voice_client: Connecting to voice...
-2020-07-16 16:13:45,071:INFO:discord.voice_client: Starting voice handshake...
-2020-07-16 16:13:45,467:INFO:discord.voice_client: Voice handshake complete. Endpoint found south-korea313.discord.media (IP: 162.159.130.235)
-2020-07-16 16:13:45,598:INFO:discord.gateway: selected the voice protocol for use (xsalsa20_poly1305_lite)
-2020-07-16 16:13:45,606:INFO:discord.gateway: received secret key for voice connection
+2020-07-19 23:53:07,622:INFO:discord: DB Loaded.
+2020-07-19 23:53:08,379:INFO:discord.client: logging in using static token
+2020-07-19 23:53:09,461:INFO:discord.gateway: Shard ID 0 has sent the IDENTIFY payload.
+2020-07-19 23:53:09,737:INFO:discord.gateway: Shard ID 0 has connected to Gateway: ["gateway-prd-main-5f2s",{"micros":78629,"calls":["discord-sessions-prd-1-54",{"micros":75134,"calls":["start_session",{"micros":69330,"calls":["api-prd-main-rb04",{"micros":58458,"calls":["get_user",{"micros":7439},"add_authorized_ip",{"micros":2629},"get_guilds",{"micros":2562},"coros_wait",{"micros":2}]}]},"guilds_connect",{"micros":10,"calls":[]},"presence_connect",{"micros":1,"calls":[]}]}]}] (Session ID: 6fb4b4cfc6e11bc1766e0d6b15cf2674).
+2020-07-19 23:53:11,756:INFO:discord: Bot online.
+2020-07-19 23:56:52,550:ERROR:discord: Command "재생목록" is not found
+2020-07-19 23:57:03,229:ERROR:discord: Command raised an exception: FileNotFoundError: [Errno 2] No such file or directory: 'cache/guild_setup.json'

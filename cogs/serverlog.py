@@ -16,7 +16,7 @@ class ServerLog(commands.Cog):
                               description=message.channel.mention + f" (`#{message.channel.name}`)",
                               colour=discord.Color.red())
         embed.set_author(name=message.author.display_name + f" ({message.author})", icon_url=message.author.avatar_url)
-        embed.add_field(name="메시지 내용", value=message.content)
+        embed.add_field(name="메시지 내용", value=message.content if message.content else "(메시지 내용 없음)")
         await admin.send_to_log(self.jbot_db_global, message.guild, embed)
 
     @commands.Cog.listener()
@@ -194,11 +194,17 @@ class ServerLog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        pass
+        embed = discord.Embed(title="새로운 맴버", description=member.mention + f" ({member})", colour=discord.Color.green())
+        embed.set_author(name=member.guild.name, icon_url=member.guild.icon_url)
+        embed.set_thumbnail(url=member.avatar_url)
+        await admin.send_to_log(self.jbot_db_global, member.guild, embed)
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
-        pass
+        embed = discord.Embed(title="맴버 퇴장", description=member, colour=discord.Color.red())
+        embed.set_author(name=member.guild.name, icon_url=member.guild.icon_url)
+        embed.set_thumbnail(url=member.avatar_url)
+        await admin.send_to_log(self.jbot_db_global, member.guild, embed)
 
     @commands.Cog.listener()
     async def on_raw_reaction_clear(self, payload):

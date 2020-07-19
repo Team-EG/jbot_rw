@@ -19,17 +19,21 @@ logger.addHandler(handler)
 
 print("Removing all temp files...")
 temp_file_list = os.listdir("temp")
-for x in temp_file_list:
-    os.remove("temp/"+x)
+for fl in temp_file_list:
+    os.remove("temp/"+fl)
 print("Done!")
 
 jbot_db_global = jbot_db.JBotDB("jbot_db_global")
 logger.info("DB Loaded.")
 
 
-def get_bot_settings():
+def get_bot_settings() -> dict:
     with open('bot_settings.json', 'r') as f:
         return json.load(f)
+
+
+if get_bot_settings()["debug"]:
+    print("Bot running in debug mode.")
 
 
 async def get_prefix(bot, message):
@@ -67,7 +71,7 @@ async def on_ready():
 
 @bot.command()
 @commands.check(is_whitelisted)
-async def cog(ctx, choose, cog_name=None):
+async def _old_cog(ctx, choose, cog_name=None):
     global embed2
     embed1 = discord.Embed(title="Cog 명령어", description="잠시만 기다려주세요...", colour=discord.Color.from_rgb(225, 225, 225))
     msg = await ctx.send(embed=embed1)
@@ -91,6 +95,83 @@ async def cog(ctx, choose, cog_name=None):
     else:
         embed2 = discord.Embed(title="Cog 명령어", description=f"`{choose}` 옵션은 존재하지 않습니다.", colour=discord.Colour.red())
     await msg.edit(embed=embed2)
+
+
+@bot.command(name="cog", aliases=["cogs"])
+@commands.check(is_whitelisted)
+async def _new_cog(ctx):
+    load = "⏺"
+    unload = "⏏"
+    reload = "🔄"
+    up = "⬆"
+    down = "⬇"
+    stop = "⏹"
+    emoji_list = [load, unload, reload, up, down, stop]
+    msg = await ctx.send("잠시만 기다려주세요...")
+    for x in emoji_list:
+        await msg.add_reaction(x)
+    cog_list = [c.replace(".py", "") for c in os.listdir("./cogs") if c.endswith(".py")]
+    cogs_dict = {}
+    base_embed = discord.Embed(title="제이봇 Cog 관리 패널", description=f"`cogs` 폴더의 Cog 개수: {len(cog_list)}개")
+    for x in cog_list:
+        if x in [x.lower() for x in bot.cogs.keys()]:
+            cogs_dict[x] = True
+        else:
+            cogs_dict[x] = False
+    cogs_keys = [x for x in cogs_dict.keys()]
+    selected = cogs_keys[0]
+    selected_num = 0
+
+    def check(reaction: discord.Reaction, user):
+        return user == ctx.author and str(reaction) in emoji_list
+
+    while True:
+        tgt_embed = base_embed.copy()
+        for k, v in cogs_dict.items():
+            if k == selected:
+                k = "▶" + k
+            tgt_embed.add_field(name=k, value=f"상태: {'로드됨' if v else '언로드됨'}", inline=False)
+        await msg.edit(content=None, embed=tgt_embed)
+        reaction, user = await bot.wait_for("reaction_add", check=check)
+        if str(reaction) == down:
+            if selected_num+1 == len(cogs_keys):
+                wd = await ctx.send("이미 마지막 Cog 입니다.")
+                await wd.delete(delay=3)
+            else:
+                selected_num += 1
+                selected = cogs_keys[selected_num]
+        elif str(reaction) == up:
+            if selected_num == 0:
+                wd = await ctx.send("이미 첫번째 Cog 입니다.")
+                await wd.delete(delay=3)
+            else:
+                selected_num -= 1
+                selected = cogs_keys[selected_num]
+        elif str(reaction) == reload:
+            if not cogs_dict[selected]:
+                wd = await ctx.send("먼저 Cog를 로드해주세요.")
+                await wd.delete(delay=3)
+            else:
+                bot.reload_extension("cogs." + selected)
+        elif str(reaction) == unload:
+            if not cogs_dict[selected]:
+                wd = await ctx.send("이미 Cog가 언로드되있습니다.")
+                await wd.delete(delay=3)
+            else:
+                bot.unload_extension("cogs." + selected)
+                cogs_dict[selected] = False
+        elif str(reaction) == load:
+            if cogs_dict[selected]:
+                wd = await ctx.send("이미 Cog가 로드되있습니다.")
+                await wd.delete(delay=3)
+            else:
+                bot.load_extension("cogs." + selected)
+                cogs_dict[selected] = True
+        elif str(reaction) == stop:
+            await msg.delete()
+            await ctx.send("Cog 관리 패널이 닫혔습니다.")
+            break
+        await msg.remove_reaction(reaction, ctx.author)
 
 
 # cog를 불러오는 스크립트

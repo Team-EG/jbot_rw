@@ -3,11 +3,13 @@ import psutil
 import datetime
 import os
 from discord.ext import commands
+from modules import jbot_db
 
 
 class Utils(commands.Cog):
     def __init__(self, bot):
-        self.bot = bot
+        self.bot: commands.AutoShardedBot = bot
+        self.jbot_db_global = jbot_db.JBotDB("jbot_db_global")
 
     @commands.command(name="안녕", description="그냥 헬로 월드 출력하는거")
     async def hello(self, ctx):
@@ -95,6 +97,55 @@ class Utils(commands.Cog):
         embed = discord.Embed(title='서버 이모지', description=', '.join(emoji_list),
                               colour=discord.Color.from_rgb(225, 225, 225))
         await ctx.send(embed=embed)
+
+    @commands.Cog.listener()
+    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
+        emoji = payload.emoji
+        if str(emoji) not in ["📌", "⭐"]:
+            return
+        msg_data = await self.jbot_db_global.res_sql("SELECT * FROM starboard WHERE msg_id=?", (payload.message_id,))
+        if not bool(msg_data):
+            await self.jbot_db_global.exec_sql("INSERT INTO starboard(msg_id) VALUES (?)", (payload.message_id,))
+            msg_data = await self.jbot_db_global.res_sql("SELECT * FROM starboard WHERE msg_id=?", (payload.message_id,))
+            count = 1
+        else:
+            count = msg_data[0]["count"] + 1
+        if bool(msg_data[0]["posted"]):
+            return
+        await self.jbot_db_global.exec_sql("UPDATE starboard SET count=? WHERE msg_id=?", (count, payload.message_id))
+        if count == 3 or bool(str(emoji) == "⭐" and payload.member.id == payload.member.guild.owner.id):
+            guild = self.bot.get_guild(payload.guild_id)
+            await self.jbot_db_global.exec_sql("UPDATE starboard SET posted=? WHERE msg_id=?", (1, payload.message_id))
+            guild_setup = await self.jbot_db_global.res_sql("SELECT * FROM guild_setup WHERE guild_id=?", (payload.guild_id,))
+            starboard_channel = guild.get_channel(guild_setup[0]["starboard_channel"])
+            if starboard_channel is None:
+                return
+            msg = await guild.get_channel(payload.channel_id).fetch_message(payload.message_id)
+            await msg.add_reaction("✅")
+            embed = discord.Embed(title="메시지 박제", description=f"[메시지 바로가기]({msg.jump_url})")
+            embed.set_author(name=msg.author.display_name + f" ({msg.author})", icon_url=msg.author.avatar_url)
+            embed.add_field(name="메시지 내용", value=msg.content if msg.content else "(내용 없음)", inline=False)
+            if bool(msg.attachments):
+                to_show = [x.url for x in msg.attachments if (x.filename.split(".")[-1]).lower() in ['png', 'webp', 'jpg', 'jpeg', 'gif', 'bmp']]
+                embed.add_field(name="사진", value=f"{len(to_show) if bool(to_show) else 0}개", inline=False)
+                if len(to_show) != 0:
+                    embed.set_image(url=to_show[0])
+            await starboard_channel.send(embed=embed)
+
+    @commands.Cog.listener()
+    async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
+        emoji = payload.emoji
+        if str(emoji) not in ["📌", "⭐"]:
+            return
+        msg_data = await self.jbot_db_global.res_sql("SELECT * FROM starboard WHERE msg_id=?", (payload.message_id,))
+        if not bool(msg_data):
+            return
+        if bool(msg_data[0]["posted"]):
+            return
+        count = msg_data[0]["count"] - 1
+        if count == 0:
+            return await self.jbot_db_global.exec_sql("DELETE FROM starboard WHERE msg_id=?", (payload.message_id,))
+        await self.jbot_db_global.exec_sql("UPDATE starboard SET count=? WHERE msg_id=?", (count, payload.message_id))
 
 
 def setup(bot):
