@@ -1,7 +1,5 @@
-2020-07-19 23:53:07,622:INFO:discord: DB Loaded.
-2020-07-19 23:53:08,379:INFO:discord.client: logging in using static token
-2020-07-19 23:53:09,461:INFO:discord.gateway: Shard ID 0 has sent the IDENTIFY payload.
-2020-07-19 23:53:09,737:INFO:discord.gateway: Shard ID 0 has connected to Gateway: ["gateway-prd-main-5f2s",{"micros":78629,"calls":["discord-sessions-prd-1-54",{"micros":75134,"calls":["start_session",{"micros":69330,"calls":["api-prd-main-rb04",{"micros":58458,"calls":["get_user",{"micros":7439},"add_authorized_ip",{"micros":2629},"get_guilds",{"micros":2562},"coros_wait",{"micros":2}]}]},"guilds_connect",{"micros":10,"calls":[]},"presence_connect",{"micros":1,"calls":[]}]}]}] (Session ID: 6fb4b4cfc6e11bc1766e0d6b15cf2674).
-2020-07-19 23:53:11,756:INFO:discord: Bot online.
-2020-07-19 23:56:52,550:ERROR:discord: Command "재생목록" is not found
-2020-07-19 23:57:03,229:ERROR:discord: Command raised an exception: FileNotFoundError: [Errno 2] No such file or directory: 'cache/guild_setup.json'
+2020-07-21 15:25:02,022:INFO:discord: DB Loaded.
+2020-07-21 15:25:02,989:INFO:discord.client: logging in using static token
+2020-07-21 15:25:04,150:INFO:discord.gateway: Shard ID 0 has sent the IDENTIFY payload.
+2020-07-21 15:25:04,432:INFO:discord.gateway: Shard ID 0 has connected to Gateway: ["gateway-prd-main-c802",{"micros":78749,"calls":["discord-sessions-prd-1-73",{"micros":75498,"calls":["start_session",{"micros":73336,"calls":["api-prd-main-pkq2",{"micros":68490,"calls":["get_user",{"micros":6946},"add_authorized_ip",{"micros":11394},"get_guilds",{"micros":2368},"coros_wait",{"micros":2}]}]},"guilds_connect",{"micros":18,"calls":[]},"presence_connect",{"micros":564,"calls":[]}]}]}] (Session ID: 41df257568a7798238ec31adedf4f671).
+2020-07-21 15:25:06,429:INFO:discord: Bot online.

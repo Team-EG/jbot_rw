@@ -43,13 +43,12 @@ class Dev(commands.Cog):
     async def announcement(self, ctx, t, *, ann):
         if not ctx.author.id == 288302173912170497:
             return
-        with open("cache/guild_setup.json", "r") as f:
-            data = json.load(f)
-        for k in data:
+        data = await self.jbot_db_global.res_sql("SELECT guild_id, announcement FROM guild_setup")
+        for x in data:
             try:
-                if data[k]["announcement"] is not None:
-                    v = data[k]["announcement"]
-                    target_channel = self.bot.get_guild(int(k)).get_channel(int(v))
+                if x["announcement"] is not None:
+                    v = x["announcement"]
+                    target_channel = self.bot.get_guild(x["guild_id"]).get_channel(v)
                     embed = discord.Embed(title='제이봇 공지', colour=discord.Color.red())
                     embed.set_footer(text=str(ctx.author.name), icon_url=ctx.author.avatar_url)
                     embed.add_field(name=str(t), value=str(ann), inline=False)

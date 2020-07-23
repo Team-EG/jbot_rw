@@ -122,7 +122,7 @@ async def _new_cog(ctx):
     selected = cogs_keys[0]
     selected_num = 0
 
-    def check(reaction: discord.Reaction, user):
+    def check(reaction, user):
         return user == ctx.author and str(reaction) in emoji_list
 
     while True:
@@ -132,7 +132,12 @@ async def _new_cog(ctx):
                 k = "▶" + k
             tgt_embed.add_field(name=k, value=f"상태: {'로드됨' if v else '언로드됨'}", inline=False)
         await msg.edit(content=None, embed=tgt_embed)
-        reaction, user = await bot.wait_for("reaction_add", check=check)
+        try:
+            reaction, user = await bot.wait_for("reaction_add", check=check, timeout=60)
+        except asyncio.TimeoutError:
+            await msg.clear_reactions()
+            await msg.edit(content="Cog 관리 패널이 닫혔습니다.", embed=None)
+            break
         if str(reaction) == down:
             if selected_num+1 == len(cogs_keys):
                 wd = await ctx.send("이미 마지막 Cog 입니다.")
@@ -168,8 +173,8 @@ async def _new_cog(ctx):
                 bot.load_extension("cogs." + selected)
                 cogs_dict[selected] = True
         elif str(reaction) == stop:
-            await msg.delete()
-            await ctx.send("Cog 관리 패널이 닫혔습니다.")
+            await msg.clear_reactions()
+            await msg.edit(content="Cog 관리 패널이 닫혔습니다.", embed=None)
             break
         await msg.remove_reaction(reaction, ctx.author)
 

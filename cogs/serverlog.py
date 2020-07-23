@@ -167,7 +167,25 @@ class ServerLog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_role_update(self, before, after):
-        pass
+        embed = discord.Embed(title='역할 업데이트됨', description=after.mention, colour=discord.Color.lighter_grey())
+        embed.set_author(name=after.guild.name, icon_url=after.guild.icon_url)
+        count = 0
+        if before.color != after.color:
+            count += 1
+            embed.add_field(name="역할 색상", value=f"{before.color} -> {after.color}", inline=False)
+        before_perms = dict(before.permissions)
+        after_perms = dict(after.permissions)
+        changed_dict = {}
+        if before_perms != after_perms:
+            count += 1
+            for x in before_perms.keys():
+                if before_perms[x] != after_perms[x]:
+                    changed_dict[x] = "예 -> 아니요" if before_perms[x] else "아니요 -> 예"
+            res = '\n'.join([f"{k}: {v}" for k, v in changed_dict.items()])
+            embed.add_field(name="변경된 권한", value=res, inline=False)
+        if count == 0:
+            return
+        await admin.send_to_log(self.jbot_db_global, after.guild, embed)
 
     @commands.Cog.listener()
     async def on_guild_role_delete(self, role):
@@ -178,19 +196,65 @@ class ServerLog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_emojis_update(self, guild, before, after):
-        pass
-
-    @commands.Cog.listener()
-    async def on_member_ban(self, guild, user):
-        pass
+        before_emoji = list(before)
+        after_emoji = list(after)
+        deleted = []
+        added = []
+        embed = discord.Embed(title="서버 이모지 업데이트됨", colour=discord.Color.lighter_grey())
+        embed.set_author(name=guild.name, icon_url=guild.icon_url)
+        for x in before_emoji:
+            if x not in after_emoji:
+                deleted.append(x)
+        if bool(deleted):
+            embed.add_field(name="제거된 이모지", value=', '.join([x.name for x in deleted]))
+        for x in after_emoji:
+            if x not in before_emoji:
+                added.append(x)
+        if bool(added):
+            embed.add_field(name="추가된 이모지", value=', '.join([x.name for x in added]))
+        await admin.send_to_log(self.jbot_db_global, guild, embed)
 
     @commands.Cog.listener()
     async def on_member_unban(self, guild, user):
-        pass
+        embed = discord.Embed(title="맴버 차단 해제됨", description=str(user), colour=discord.Colour.green())
+        embed.set_author(name=guild.name, icon_url=guild.icon_url)
+        embed.set_thumbnail(url=user.avatar_url)
+        await admin.send_to_log(self.jbot_db_global, guild, embed)
+
+    @commands.Cog.listener()
+    async def on_member_ban(self, guild, user):
+        embed = discord.Embed(title="맴버 차단됨", description=str(user), colour=discord.Colour.red())
+        embed.set_author(name=guild.name, icon_url=guild.icon_url)
+        embed.set_thumbnail(url=user.avatar_url)
+        await admin.send_to_log(self.jbot_db_global, guild, embed)
 
     @commands.Cog.listener()
     async def on_member_update(self, before, after):
-        pass
+        embed = discord.Embed(name="맴버 정보 업데이트됨", description=after.mention + f" ({after})", colour=discord.Color.lighter_grey())
+        embed.set_author(name=after.guild.name, icon_url=after.guild.icon_url)
+        before_roles = before.roles
+        after_roles = after.roles
+        deleted = []
+        added = []
+        count = 0
+        if before.display_name != after.display_name:
+            embed.add_field(name="닉네임 변경됨", value=f"{before.display_name} -> {after.display_name}", inline=False)
+            count += 1
+        if before_roles != after_roles:
+            count += 1
+            for x in before_roles:
+                if x not in after_roles:
+                    deleted.append(x)
+            for x in after_roles:
+                if x not in before_roles:
+                    added.append(x)
+            if bool(added):
+                embed.add_field(name="추가된 역할", value=', '.join([x.mention for x in added]), inline=False)
+            if bool(deleted):
+                embed.add_field(name="제거된 역할", value=', '.join([x.mention for x in deleted]), inline=False)
+        if count == 0:
+            return
+        await admin.send_to_log(self.jbot_db_global, after.guild, embed)
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
@@ -201,18 +265,19 @@ class ServerLog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
-        embed = discord.Embed(title="맴버 퇴장", description=member, colour=discord.Color.red())
+        embed = discord.Embed(title="맴버 퇴장", description=str(member), colour=discord.Color.red())
         embed.set_author(name=member.guild.name, icon_url=member.guild.icon_url)
         embed.set_thumbnail(url=member.avatar_url)
         await admin.send_to_log(self.jbot_db_global, member.guild, embed)
 
     @commands.Cog.listener()
     async def on_raw_reaction_clear(self, payload):
-        pass
-
-    @commands.Cog.listener()
-    async def on_guild_channel_pins_update(self, channel, last_pin):
-        pass
+        guild = self.bot.get_guild(payload.guild_id)
+        channel = guild.get_channel(payload.channel_id)
+        msg = await channel.fetch_message(payload.message_id)
+        embed = discord.Embed(title="모든 반응 제거됨", description=f"[해당 메시지로 바로가기]({msg.jump_url})", color=discord.Colour.red())
+        embed.set_author(name=guild.name, icon_url=guild.icon_url)
+        await admin.send_to_log(self.jbot_db_global, guild, embed)
 
     @commands.Cog.listener()
     async def on_invite_create(self, invite):

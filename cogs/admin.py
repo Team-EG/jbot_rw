@@ -25,6 +25,19 @@ class Admin(commands.Cog):
     async def warn(self, ctx, member: discord.Member, *, reason="없음"):
         await admin.warn(self.jbot_db_global, self.jbot_db_warns, member, reason=reason, issued_by=ctx.author, ctx=ctx)
 
+    @commands.command(name="추방")
+    async def kick(self, ctx, member: discord.Member, *, reason="없음"):
+        await member.send(f"`{ctx.author.guild.name}`에서 추방되었습니다. (사유: {reason}, {ctx.author}이(가) 추방함)")
+        await member.kick(reason=reason+f" ({ctx.author}이(가) 추방함)")
+        await ctx.send(f"`{member}`을(를) 추방했습니다. (사유: {reason})")
+
+    @commands.command(name="차단")
+    async def ban(self, ctx, member: discord.Member, *, reason="없음"):
+        await member.send(f"`{ctx.author.guild.name}`에서 차단되었습니다. (사유: {reason}, {ctx.author}이(가) 차단함)")
+        await member.send("https://www.youtube.com/watch?v=FXPKJUE86d0")
+        await member.ban(reason=reason + f" ({ctx.author}이(가) 차단함)")
+        await ctx.send(f"`{member}`을(를) 차단했습니다. (사유: {reason})")
+
     @commands.group(name="정리")
     async def purge(self, ctx, amount: typing.Optional[int] = None):
         if ctx.invoked_subcommand is None and amount is not None:
@@ -54,6 +67,26 @@ class Admin(commands.Cog):
         await ctx.channel.delete_messages(tgt_list)
         msg = await ctx.send(f"`{tgt_msg.id}`부터의 메시지를 정리했습니다.\n`이 메시지는 5초 후 삭제됩니다.`")
         await msg.delete(delay=5)
+
+    @commands.Cog.listener()
+    async def on_member_join(self, member):
+        welcome_msgs = await self.jbot_db_global.res_sql("""SELECT welcome_channel, greet, greetpm FROM guild_setup WHERE guild_id=?""", (member.guild.id,))
+        if not bool(welcome_msgs):
+            return
+        if bool(welcome_msgs[0]["greet"]):
+            channel = member.guild.get_channel(int(welcome_msgs[0]["welcome_channel"]))
+            await channel.send((welcome_msgs[0]["greet"]).replace("{mention}", member.mention))
+        if bool(welcome_msgs[0]["greetpm"]):
+            await member.send((welcome_msgs[0]["greetpm"]).replace("{name}", member.name))
+
+    @commands.Cog.listener()
+    async def on_member_remove(self, member):
+        bye_msgs = await self.jbot_db_global.res_sql("""SELECT welcome_channel, bye FROM guild_setup WHERE guild_id=?""", (member.guild.id,))
+        if not bool(bye_msgs):
+            return
+        if bool(bye_msgs[0]["bye"]):
+            channel = member.guild.get_channel(int(bye_msgs[0]["welcome_channel"]))
+            await channel.send((bye_msgs[0]["bye"]).replace("{name}", member.name))
 
     """@commands.command(name="역할정리")
     async def clr_roles(self, ctx):

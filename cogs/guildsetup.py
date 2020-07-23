@@ -62,21 +62,23 @@ class GuildSetup(commands.Cog):
             for x in guild_data.keys():
                 if guild_data[x] is None:
                     guild_data[x] = "없음"
-                elif guild_data[x] is False:
+                elif len(str(guild_data[x])) != 1:
+                    pass
+                elif bool(guild_data[x]) is False:
                     guild_data[x] = "아니요"
-                elif guild_data[x] is True:
+                elif bool(guild_data[x]) is True:
                     guild_data[x] = "네"
             log_channel = guild_data["log_channel"]
             ann_channel = guild_data["announcement"]
             welcome_channel = guild_data["welcome_channel"]
             mute_role = guild_data["mute_role"]
-            if not log_channel == "없음":
+            if log_channel != "없음":
                 log_channel = (ctx.guild.get_channel(int(log_channel))).mention
-            if not ann_channel == "없음":
+            if ann_channel != "없음":
                 ann_channel = (ctx.guild.get_channel(int(ann_channel))).mention
-            if not welcome_channel == "없음":
+            if welcome_channel != "없음":
                 welcome_channel = (ctx.guild.get_channel(int(welcome_channel))).mention
-            if not mute_role == "없음":
+            if mute_role != "없음":
                 mute_role = (ctx.guild.get_role(int(mute_role))).mention
             embed = discord.Embed(title="현재 서버 설정",
                                   description=f"변경을 원하신다면 `{str(guild_data['prefix'])}도움 설정` 명령어를 참고해주세요.")
@@ -126,7 +128,7 @@ class GuildSetup(commands.Cog):
         if channel is None:
             embed_off = discord.Embed(title=f"{tgt} 변경", description="정말로 서버 로그 기능을 비활성화 할까요?")
             msg = await ctx.send(embed=embed_off)
-            channel_id = 'None'
+            channel_id = None
         else:
             embed_change = discord.Embed(title=f"{tgt} 변경", description=f"정말로 서버 로그 채널을 {channel.mention}로 변경할까요?")
             msg = await ctx.send(embed=embed_change)
@@ -142,7 +144,7 @@ class GuildSetup(commands.Cog):
         if channel is None:
             embed_off = discord.Embed(title=f"{tgt} 변경", description="정말로 제이봇이 공지를 보내지 않게 설정할까요?")
             msg = await ctx.send(embed=embed_off)
-            channel_id = 'None'
+            channel_id = None
         else:
             embed_change = discord.Embed(title=f"{tgt} 변경", description=f"정말로 제이봇 공지 채널을 {channel.mention}로 변경할까요?")
             msg = await ctx.send(embed=embed_change)
@@ -159,13 +161,61 @@ class GuildSetup(commands.Cog):
         if channel is None:
             embed_off = discord.Embed(title=f"{tgt} 변경", description="정말로 유저 환영 기능을 비활성화 할까요?")
             msg = await ctx.send(embed=embed_off)
-            channel_id = 'None'
+            channel_id = None
         else:
             embed_change = discord.Embed(title=f"{tgt} 변경", description=f"정말로 유저 환영 채널을 {channel.mention}로 변경할까요?")
             msg = await ctx.send(embed=embed_change)
             channel_id = channel.id
         await admin.update_setup(self.jbot_db_global, self.bot, ctx, msg, [embed_ok, embed_no, embed_cancel],
-                                 "announcement", channel_id)
+                                 "welcome_channel", channel_id)
+
+    @settings.command(name="환영인사")
+    async def welcome_word_change(self, ctx, *, words=None):
+        tgt = "유저 환영 인사"
+        embed_ok = discord.Embed(title=f"{tgt} 변경", description="변경이 완료되었습니다.")
+        embed_no = discord.Embed(title=f"{tgt} 변경", description="변경이 취소되었습니다.")
+        embed_cancel = discord.Embed(title=f"{tgt} 변경", description="시간이 만료되었습니다.")
+        if words is None:
+            embed_off = discord.Embed(title=f"{tgt} 변경", description="정말로 유저 환영 인사를 제거할까요?")
+            msg = await ctx.send(embed=embed_off)
+            words = None
+        else:
+            embed_change = discord.Embed(title=f"{tgt} 변경", description=f"정말로 유저 환영 인사를 이걸로 변경할까요?\n```{words}```")
+            msg = await ctx.send(embed=embed_change)
+        await admin.update_setup(self.jbot_db_global, self.bot, ctx, msg, [embed_ok, embed_no, embed_cancel],
+                                 "greet", words)
+
+    @settings.command(name="작별인사")
+    async def goodbye_word_change(self, ctx, *, words=None):
+        tgt = "유저 작별 인사"
+        embed_ok = discord.Embed(title=f"{tgt} 변경", description="변경이 완료되었습니다.")
+        embed_no = discord.Embed(title=f"{tgt} 변경", description="변경이 취소되었습니다.")
+        embed_cancel = discord.Embed(title=f"{tgt} 변경", description="시간이 만료되었습니다.")
+        if words is None:
+            embed_off = discord.Embed(title=f"{tgt} 변경", description="정말로 유저 작별 인사를 제거할까요?")
+            msg = await ctx.send(embed=embed_off)
+            words = None
+        else:
+            embed_change = discord.Embed(title=f"{tgt} 변경", description=f"정말로 유저 작별 인사를 이걸로 변경할까요?\n```{words}```")
+            msg = await ctx.send(embed=embed_change)
+        await admin.update_setup(self.jbot_db_global, self.bot, ctx, msg, [embed_ok, embed_no, embed_cancel],
+                                 "bye", words)
+
+    @settings.command(name="DM인사")
+    async def welcome_dm_change(self, ctx, *, words=None):
+        tgt = "유저 DM 환영 인사"
+        embed_ok = discord.Embed(title=f"{tgt} 변경", description="변경이 완료되었습니다.")
+        embed_no = discord.Embed(title=f"{tgt} 변경", description="변경이 취소되었습니다.")
+        embed_cancel = discord.Embed(title=f"{tgt} 변경", description="시간이 만료되었습니다.")
+        if words is None:
+            embed_off = discord.Embed(title=f"{tgt} 변경", description="정말로 유저 DM 환영 인사를 제거할까요?")
+            msg = await ctx.send(embed=embed_off)
+            words = None
+        else:
+            embed_change = discord.Embed(title=f"{tgt} 변경", description=f"정말로 유저 DM 환영 인사를 이걸로 변경할까요?\n```{words}```")
+            msg = await ctx.send(embed=embed_change)
+        await admin.update_setup(self.jbot_db_global, self.bot, ctx, msg, [embed_ok, embed_no, embed_cancel],
+                                 "greetpm", words)
 
 
 def setup(bot):

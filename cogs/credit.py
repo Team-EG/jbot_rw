@@ -35,7 +35,7 @@ class Credit(commands.Cog):
                                   color=discord.Colour.from_rgb(225, 225, 225))
             embed.add_field(name="메인 개발자", value=str(eun))
             embed.add_field(name="제작 참여", value=str(gpm) + "\n" + str(rainy))
-            embed.add_field(name="사용한 오픈소스", value="Python, discord.py, youtube_dl, aiomysql, beautifulsoup4, ffmpeg")
+            embed.add_field(name="사용한 오픈소스", value="Python 3, discord.py, youtube_dl, beautifulsoup4, ffmpeg")
             embed.add_field(name="Special thanks to...", value="Team EG members, KSP 한국 포럼 디스코드, and you!")
             await msg.edit(embed=embed)
             return

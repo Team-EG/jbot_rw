@@ -3,6 +3,23 @@ import json
 from discord.ext import commands
 from modules import page
 
+cog_names = {
+    "Help": "도움",
+    "Admin": "관리자",
+    "Utils": "유틸리티",
+    "Level": "레벨",
+    "EasterEgg": "이스터에그",
+    "Credit": "크레딧",
+    "Dev": "개발자",
+    "Error": "오류",
+    "Spam": "도배",
+    "Presence": "상태",
+    "Music": "뮤직",
+    "GuildSetup": "설정",
+    "ServerLog": "서버 로그"
+}
+prohibited_cogs = ["Dev", "Error", "Presence", "EasterEgg"]
+
 
 class Help(commands.Cog):
     def __init__(self, bot):
@@ -11,34 +28,22 @@ class Help(commands.Cog):
     @commands.group(name="도움", aliases=["도움말", "help"])
     async def help(self, ctx):
         if ctx.invoked_subcommand is None:
-            embed1 = discord.Embed(title="명령어 리스트", description="도움 명령어")
-            with open("help/help.json", "r", encoding="UTF-8") as f:
-                help_list = json.load(f)
-            count = 0
-            for k in list(help_list.keys()):
-                v = help_list[k]
-                embed1.add_field(name=k, value=f"{v['desc']}\n에일리어스: `{v['aliases']}`", inline=False)
-                count += 1
-                help_list.pop(k)
-                if count == 4:
-                    break
-            embed2 = discord.Embed(title="명령어 리스트", description="도움 명령어")
-            for k, v in help_list.items():
-                v = help_list[k]
-                embed2.add_field(name=k, value=f"{v['desc']}\n에일리어스: `{v['aliases']}`", inline=False)
-            embed_list = [embed1, embed2]
-            await page.start_page(self.bot, ctx, embed_list, 30, embed=True)
+            base_embed = discord.Embed(title="명령어 리스트", description="한눈에 보는 명령어 리스트", color=discord.Color.from_rgb(225, 225, 225))
+            cogs = [(x, y.get_commands()) for x, y in self.bot.cogs.items()]
+            for x in cogs:
+                if x[0] in prohibited_cogs:
+                    continue
+                if not bool(x[1]):
+                    continue
+                base_embed.add_field(name=cog_names[x[0]], value='`' + '`, `'.join([c.name for c in x[1]]) + '`', inline=False)
+            await ctx.send(embed=base_embed)
 
-    @help.command(name="관리")
-    async def admin(self, ctx):
+    @help.command(name="카테고리")
+    async def help_by_category(self, ctx):
         pass
 
-    @help.command(name="뮤직")
-    async def music(self, ctx):
-        pass
-
-    @help.command(name="기타")
-    async def etc(self, ctx):
+    @help.command(name="검색")
+    async def help_search(self, ctx):
         pass
 
 

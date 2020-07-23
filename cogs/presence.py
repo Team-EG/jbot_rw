@@ -23,7 +23,7 @@ class Presence(commands.Cog):
                 try:
                     await self.bot.change_presence(activity=discord.Game(str(x)))
                     await asyncio.sleep(5)
-                except asyncio.streams.IncompleteReadError or discord.ConnectionClosed or websockets.exceptions.ConnectionClosedError:
+                except (asyncio.streams.IncompleteReadError, discord.ConnectionClosed, websockets.exceptions.ConnectionClosedError):
                     print("Failed Changing. Retrying...")
                     await asyncio.sleep(5)
                     await self.bot.change_presence(activity=discord.Game(str(x)))
