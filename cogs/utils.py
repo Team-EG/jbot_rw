@@ -2,20 +2,28 @@ import discord
 import psutil
 import datetime
 import os
+import random
 from discord.ext import commands
-from modules import jbot_db
+from modules import jbot_db, confirm
 
 
 class Utils(commands.Cog):
     def __init__(self, bot):
-        self.bot: commands.AutoShardedBot = bot
+        self.bot = bot
         self.jbot_db_global = jbot_db.JBotDB("jbot_db_global")
 
-    @commands.command(name="안녕", description="그냥 헬로 월드 출력하는거")
+    @commands.command(name="안녕", description="Hello, World!")
     async def hello(self, ctx):
-        await ctx.send("Hello World!")
+        hello_world = ["Hello, World!",
+                       "World, Hello!",
+                       "hello world",
+                       "```py\nprint('Hello, World!')```",
+                       "```c\n#include <stdio.h>\n\nvoid main()\n{\n    printf('Hello, World!');\n}\n",
+                       "안녕, 세상!",
+                       "hELLO< wORLD1"]
+        await ctx.send(random.choice(hello_world))
 
-    @commands.command()
+    @commands.command(name="hellothisisverification", description="KOREANBOTS 인증용 명령어입니다.")
     async def hellothisisverification(self, ctx):
         await ctx.send("eunwoo1104#9600 (ID: 288302173912170497)")
 
@@ -40,7 +48,7 @@ class Utils(commands.Cog):
         embed.add_field(name="생성일", value=str(emoji.created_at.strftime("%Y-%m-%d %I:%M:%S %p")))
         await ctx.send(embed=embed)
 
-    @commands.command(name="정보")
+    @commands.command(name="정보", description="봇의 정보를 보여줍니다.")
     async def jbot_info(self, ctx):
         servers = len(self.bot.guilds)
         users = len(list(self.bot.get_all_members()))
@@ -131,6 +139,18 @@ class Utils(commands.Cog):
                 if len(to_show) != 0:
                     embed.set_image(url=to_show[0])
             await starboard_channel.send(embed=embed)
+
+    @commands.command(name="건의", description="개발자에게 건의사항을 보냅니다.")
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def tix(self, ctx, *, ticket):
+        msg = await ctx.send("정말로 건의사항을 보낼까요?\n장난으로 보내는 등 불필요하게 건의사항을 보내는 경우 건의사항 기능을 사용할 수 없게 될 수도 있습니다.")
+        res = await confirm.confirm(self.bot, ctx, msg)
+        if res is True:
+            owner = self.bot.get_user(288302173912170497)
+            await owner.send(f"`건의사항 ({ctx.author} / {ctx.author.id})`")
+            await owner.send(ticket)
+            return await ctx.send("성공적으로 건의사항을 보냈습니다!")
+        await ctx.send("건의사항 보내기가 취소되었습니다.")
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):

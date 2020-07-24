@@ -23,6 +23,10 @@ class Spam(commands.Cog):
         if "--NOSPAMCOUNT" in str(message.channel.topic):
             return
 
+        guild_setting = (await self.jbot_db_global.res_sql("""SELECT use_antispam FROM guild_setup WHERE guild_id=?""", (message.guild.id,)))[0]
+        if not bool(guild_setting["use_antispam"]):
+            return
+
         curr_time = time.time()
         time_check_exist = os.path.isfile(f"temp/{message.guild.id}_spam.json")
         if not time_check_exist:
@@ -50,9 +54,9 @@ class Spam(commands.Cog):
         with open(f"temp/{message.guild.id}_spam.json", "w") as f:
             json.dump(time_data, f, indent=4)
         if time_data[str(message.author.id)]["spam_count"] == 10:
-            await message.channel.send("굴라크")
+            await message.channel.send(f"{message.author.mention} 도배 카운트가 누적되고 있습니다. 도배 카운트가 더 누적된다면 경고가 자동으로 부여됩니다.")
         elif time_data[str(message.author.id)]["spam_count"] == 15:
-            await message.channel.send("경고임 ㅅㄱ")
+            await message.channel.send("도배 카운트 누적으로 자동으로 경고가 부여되었습니다.")
             await admin.warn(jbot_db_global=self.jbot_db_global, jbot_db_warns=self.jbot_db_warns, member=message.author, reason="도배 카운트 누적", issued_by=self.bot.user, message=message)
 
 

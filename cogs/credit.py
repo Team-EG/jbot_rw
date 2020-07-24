@@ -14,7 +14,7 @@ class Credit(commands.Cog):
     def cog_unload(self):
         loop.run_until_complete(self.jbot_db_global.close_db())
 
-    @commands.command(name="크레딧")
+    @commands.command(name="크레딧", description="제이봇의 크레딧을 보여줍니다.")
     async def credit(self, ctx):
         embed = discord.Embed(title="제이봇 크레딧", description="잠시만 기다려주세요...",
                               color=discord.Colour.from_rgb(225, 225, 225))
@@ -35,7 +35,6 @@ class Credit(commands.Cog):
                                   color=discord.Colour.from_rgb(225, 225, 225))
             embed.add_field(name="메인 개발자", value=str(eun))
             embed.add_field(name="제작 참여", value=str(gpm) + "\n" + str(rainy))
-            embed.add_field(name="사용한 오픈소스", value="Python 3, discord.py, youtube_dl, beautifulsoup4, ffmpeg")
             embed.add_field(name="Special thanks to...", value="Team EG members, KSP 한국 포럼 디스코드, and you!")
             await msg.edit(embed=embed)
             return

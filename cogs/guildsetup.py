@@ -55,7 +55,7 @@ class GuildSetup(commands.Cog):
             return
         await self.jbot_db_global.exec_sql("DELETE FROM guild_setup WHERE guild_id=?", (guild.id,))
 
-    @commands.group(name="설정")
+    @commands.group(name="설정", description="봇의 기능과 관련된 부분을 설정합니다.")
     async def settings(self, ctx):
         if ctx.invoked_subcommand is None:
             guild_data = (await self.jbot_db_global.res_sql("SELECT * FROM guild_setup WHERE guild_id=?", (ctx.guild.id,)))[0]
@@ -81,7 +81,7 @@ class GuildSetup(commands.Cog):
             if mute_role != "없음":
                 mute_role = (ctx.guild.get_role(int(mute_role))).mention
             embed = discord.Embed(title="현재 서버 설정",
-                                  description=f"변경을 원하신다면 `{str(guild_data['prefix'])}도움 설정` 명령어를 참고해주세요.")
+                                  description=f"변경을 원하신다면 `{str(guild_data['prefix'])}설정 도움` 명령어를 참고해주세요.")
             embed.set_thumbnail(url=ctx.guild.icon_url)
             embed.add_field(name="프리픽스", value=str(guild_data["prefix"]))
             embed.add_field(name="대화 프리픽스", value=str(guild_data["talk_prefix"]))
@@ -216,6 +216,25 @@ class GuildSetup(commands.Cog):
             msg = await ctx.send(embed=embed_change)
         await admin.update_setup(self.jbot_db_global, self.bot, ctx, msg, [embed_ok, embed_no, embed_cancel],
                                  "greetpm", words)
+
+    @settings.command(name="토글", aliases=["온오프", "변경"])
+    async def toggle_feature(self, ctx, to_change, on_off):
+        changeable = {"레벨": "use_level", "도배방지": "use_antispam", "글로벌DB": "use_globaldata"}
+        tgt = "기타 기능"
+        embed_ok = discord.Embed(title=f"{tgt} 변경", description="변경이 완료되었습니다.")
+        embed_no = discord.Embed(title=f"{tgt} 변경", description="변경이 취소되었습니다.")
+        embed_cancel = discord.Embed(title=f"{tgt} 변경", description="시간이 만료되었습니다.")
+        if to_change not in changeable.keys():
+            return await ctx.send(f"`{to_change}`는 변경할 수 없습니다.")
+        if on_off == "활성화":
+            value = 1
+        elif on_off == "비활성화":
+            value = 0
+        else:
+            return await ctx.send("잘못된 값이 감지되었습니다. (`활성화`, `비활성화` 중 하나를 사용해주세요.)")
+        embed_change = discord.Embed(title=f"{tgt} 변경", description=f"정말로 이 기능을 {'활성화 할까요' if bool(value) else '비활성화 할까요'}?")
+        msg = await ctx.send(embed=embed_change)
+        await admin.update_setup(self.jbot_db_global, self.bot, ctx, msg, [embed_ok, embed_no, embed_cancel], changeable[to_change], value)
 
 
 def setup(bot):

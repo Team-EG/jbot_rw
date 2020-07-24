@@ -25,7 +25,7 @@ class Help(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.group(name="도움", aliases=["도움말", "help"])
+    @commands.group(name="도움", description="봇의 도움말 명령어를 출력합니다.", aliases=["도움말", "help"])
     async def help(self, ctx):
         if ctx.invoked_subcommand is None:
             base_embed = discord.Embed(title="명령어 리스트", description="한눈에 보는 명령어 리스트", color=discord.Color.from_rgb(225, 225, 225))
@@ -39,8 +39,12 @@ class Help(commands.Cog):
             await ctx.send(embed=base_embed)
 
     @help.command(name="카테고리")
-    async def help_by_category(self, ctx):
-        pass
+    async def help_by_category(self, ctx, category_name: str = None):
+        base_embed = discord.Embed(title="명령어 리스트", description="카테고리별 명령어 리스트", color=discord.Color.from_rgb(225, 225, 225))
+        if category_name is None: return
+        for k, v in cog_names.items():
+            if category_name == v:
+                selected_category = k
 
     @help.command(name="검색")
     async def help_search(self, ctx):

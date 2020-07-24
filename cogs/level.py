@@ -8,6 +8,7 @@ import asyncio
 from discord.ext import commands
 from modules import lvl_calc
 from modules import jbot_db
+from modules import page
 
 loop = asyncio.get_event_loop()
 
@@ -15,12 +16,13 @@ loop = asyncio.get_event_loop()
 class Level(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.jbot_db_global = jbot_db.JBotDB("jbot_db_global")
         self.jbot_db_level = jbot_db.JBotDB("jbot_db_level")
 
     def cog_unload(self):
         loop.run_until_complete(self.jbot_db_level.close_db())
 
-    @commands.command(name="레벨")
+    @commands.command(name="레벨", description="자신의 레벨을 출력합니다.")
     async def level(self, ctx, user: discord.Member = None):
         if user is None:
             user = ctx.author
@@ -34,20 +36,31 @@ class Level(commands.Cog):
         embed.add_field(name="XP", value=str(exp))
         await ctx.send(embed=embed)
 
-    @commands.command(name="랭크")
+    @commands.command(name="랭크", description="이 서버의 레벨 리더보드를 출력합니다.")
     async def rank(self, ctx):
         sorted_list = await self.jbot_db_level.res_sql(f"""SELECT * FROM "{ctx.guild.id}_level" ORDER BY exp DESC""")
-        embed = discord.Embed(title="랭크", description=str(ctx.guild.name), color=discord.Colour.from_rgb(225, 225, 225))
+        base_embed = discord.Embed(title="랭크", description=str(ctx.guild.name), color=discord.Colour.from_rgb(225, 225, 225))
+        base_embed.set_thumbnail(url=ctx.guild.icon_url)
+        base_embed.set_footer(text=ctx.author, icon_url=ctx.author.avatar_url)
         lvl = 1
+        embed = base_embed.copy()
+        embed_list = []
+        count = 0
         for x in sorted_list:
             if int(x["exp"]) == 0:
-                continue
+                break
+            if count != 0 and count % 5 == 0:
+                embed_list.append(embed)
+                embed = base_embed.copy()
             embed.add_field(name=str(lvl),
                             value=f"{ctx.guild.get_member(int(x['user_id'])).mention}\n레벨: {x['lvl']}\nXP: {x['exp']}",
                             inline=False)
             lvl += 1
-        embed.set_footer(text=ctx.author, icon_url=ctx.author.avatar_url)
-        await ctx.send(embed=embed)
+            count += 1
+        embed_list.append(embed)
+        if len(embed_list) == 1:
+            return await ctx.send(embed=embed)
+        await page.start_page(self.bot, ctx=ctx, lists=embed_list, embed=True)
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -57,6 +70,10 @@ class Level(commands.Cog):
             return
 
         if "--NOLEVEL" in str(message.channel.topic):
+            return
+
+        guild_setting = (await self.jbot_db_global.res_sql("""SELECT use_level FROM guild_setup WHERE guild_id=?""", (message.guild.id,)))[0]
+        if not bool(guild_setting["use_level"]):
             return
 
         curr_time = time.time()

@@ -27,18 +27,6 @@ class Dev(commands.Cog):
             raise custom_errors.NotWhitelisted
         return True
 
-    @commands.command(name="건의")
-    @commands.cooldown(1, 5, commands.BucketType.user)
-    async def tix(self, ctx, *, gulag):
-        msg = await ctx.send("정말로 건의사항을 보낼까요?\n장난으로 보내는 등 불필요하게 건의사항을 보내는 경우 건의사항 기능을 사용할 수 없게 될 수도 있습니다.")
-        res = await confirm.confirm(self.bot, ctx, msg)
-        if res is True:
-            owner = self.bot.get_user(288302173912170497)
-            await owner.send(f"`건의사항 ({ctx.author} / {ctx.author.id})`")
-            await owner.send(gulag)
-            return await ctx.send("성공적으로 건의사항을 보냈습니다!")
-        await ctx.send("건의사항 보내기가 취소되었습니다.")
-
     @commands.command(name="공지")
     async def announcement(self, ctx, t, *, ann):
         if not ctx.author.id == 288302173912170497:

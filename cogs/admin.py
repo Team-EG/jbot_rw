@@ -21,24 +21,24 @@ class Admin(commands.Cog):
             return True
         raise custom_errors.NotAdmin
 
-    @commands.command(name="경고")
+    @commands.command(name="경고", description="선택한 유저에게 경고를 부여합니다.")
     async def warn(self, ctx, member: discord.Member, *, reason="없음"):
         await admin.warn(self.jbot_db_global, self.jbot_db_warns, member, reason=reason, issued_by=ctx.author, ctx=ctx)
 
-    @commands.command(name="추방")
+    @commands.command(name="추방", description="선택한 유저를 추방합니다.")
     async def kick(self, ctx, member: discord.Member, *, reason="없음"):
         await member.send(f"`{ctx.author.guild.name}`에서 추방되었습니다. (사유: {reason}, {ctx.author}이(가) 추방함)")
         await member.kick(reason=reason+f" ({ctx.author}이(가) 추방함)")
         await ctx.send(f"`{member}`을(를) 추방했습니다. (사유: {reason})")
 
-    @commands.command(name="차단")
+    @commands.command(name="차단", description="선택한 유저를 차단합니다.")
     async def ban(self, ctx, member: discord.Member, *, reason="없음"):
         await member.send(f"`{ctx.author.guild.name}`에서 차단되었습니다. (사유: {reason}, {ctx.author}이(가) 차단함)")
         await member.send("https://www.youtube.com/watch?v=FXPKJUE86d0")
         await member.ban(reason=reason + f" ({ctx.author}이(가) 차단함)")
         await ctx.send(f"`{member}`을(를) 차단했습니다. (사유: {reason})")
 
-    @commands.group(name="정리")
+    @commands.group(name="정리", description="메시지를 대량으로 삭제합니다.")
     async def purge(self, ctx, amount: typing.Optional[int] = None):
         if ctx.invoked_subcommand is None and amount is not None:
             if amount > 100:
@@ -47,7 +47,7 @@ class Admin(commands.Cog):
             msg = await ctx.send(f"메시지 {amount}개를 정리했습니다.\n`이 메시지는 5초 후 삭제됩니다.`")
             await msg.delete(delay=5)
 
-    @purge.command(name="유저")
+    @purge.command(name="유저", description="선택한 유저가 보낸 메시지들을 삭제합니다.")
     async def purge_user(self, ctx, user: discord.Member, limit: int):
         if limit > 100:
             return await ctx.send("오류 방지를 위해 검색되는 메시지 최대 범위는 100개로 제한됩니다.")
@@ -59,7 +59,7 @@ class Admin(commands.Cog):
         msg = await ctx.send(f"{user.mention}(이)가 보낸 메시지 {len(tgt_list)}개를 정리했습니다.\n`이 메시지는 5초 후 삭제됩니다.`")
         await msg.delete(delay=5)
 
-    @purge.command(name="메시지")
+    @purge.command(name="메시지", description="선택한 메시지까지의 모든 메시지들을 삭제합니다.")
     async def purge_msg(self, ctx, tgt_msg: discord.Message):
         tgt_list = [tgt_msg]
         async for message in ctx.channel.history(after=tgt_msg):

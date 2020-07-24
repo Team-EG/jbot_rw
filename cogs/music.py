@@ -109,7 +109,7 @@ class Music(commands.Cog):
     def cog_unload(self):
         loop.run_until_complete(self.jbot_db_global.close_db())
 
-    @commands.command(name="재생", aliases=["play", "p", "ㅔ", "대기", "queue", "q", "ㅂ"])
+    @commands.command(name="재생", description="음악을 재생합니다.", aliases=["play", "p", "ㅔ", "대기", "queue", "q", "ㅂ"])
     async def play(self, ctx, *, url):
         guild_setup = await self.jbot_db_global.res_sql("""SELECT prefix FROM guild_setup WHERE guild_id=?""", (ctx.guild.id,))
         msg = await ctx.send(
@@ -175,7 +175,7 @@ class Music(commands.Cog):
         await update_queue(ctx.guild.id, queue)
         await asyncio.create_task(queue_task(self.bot, ctx, voice))
 
-    @commands.command(name='루프', aliases=["무한반복", "loop", "repeat"])
+    @commands.command(name='루프', description="재생중인 음악을 무한 반복하거나 무한 반복을 해제합니다.", aliases=["무한반복", "loop", "repeat"])
     async def music_loop(self, ctx):
         voice_ok = await check_voice(ctx)
         if not voice_ok:
@@ -198,7 +198,7 @@ class Music(commands.Cog):
             await update_queue(ctx.guild.id, queue)
             return await msg.edit(content=f"{ctx.author.mention} 무한반복이 해제되었습니다.")
 
-    @commands.command(name="셔플", aliases=["랜덤", "random", "shuffle", "sf", "ㄶ", "ㄴㅎ"])
+    @commands.command(name="셔플", description="대기 리스트에서 음악을 무작위로 재생합니다.", aliases=["랜덤", "random", "shuffle", "sf", "ㄶ", "ㄴㅎ"])
     async def shuffle(self, ctx):
         voice_ok = await check_voice(ctx)
         if not voice_ok:
@@ -221,7 +221,7 @@ class Music(commands.Cog):
             await update_queue(ctx.guild.id, queue)
             return await msg.edit(content=f"{ctx.author.mention} 랜덤 재생이 해제되었습니다.")
 
-    @commands.command(name="스킵", aliases=["s", "skip", "ㄴ"])
+    @commands.command(name="스킵", description="재생중인 음악을 스킵합니다.", aliases=["s", "skip", "ㄴ"])
     async def skip(self, ctx):
         voice = ctx.voice_client
         voice_ok = await check_voice(ctx)
@@ -229,7 +229,7 @@ class Music(commands.Cog):
             return
         voice.stop()
 
-    @commands.command(name="정지", aliases=["stop", "ㄴ새ㅔ"])
+    @commands.command(name="정지", description="음악 재생을 멈춥니다.", aliases=["stop", "ㄴ새ㅔ"])
     async def stop(self, ctx):
         voice = ctx.voice_client
         voice_ok = await check_voice(ctx)
@@ -238,7 +238,7 @@ class Music(commands.Cog):
         os.remove(f"music/{ctx.guild.id}.json")
         voice.stop()
 
-    @commands.command(name="일시정지", aliases=["pause", "ps", "ㅔㄴ"])
+    @commands.command(name="일시정지", description="음악을 일시정지합니다.", aliases=["pause", "ps", "ㅔㄴ"])
     async def pause(self, ctx):
         voice = ctx.voice_client
         voice_ok = await check_voice(ctx)
@@ -247,7 +247,7 @@ class Music(commands.Cog):
         voice.pause()
         await ctx.send(f"{ctx.author.mention} 플레이어를 일시정지했습니다.")
 
-    @commands.command(name="계속재생", aliases=["resume", "r", "ㄱ"])
+    @commands.command(name="계속재생", description="음악 일시정지를 해제합니다.", aliases=["resume", "r", "ㄱ"])
     async def resume(self, ctx):
         voice = ctx.voice_client
         voice_ok = await check_voice(ctx, resume=True)
@@ -258,13 +258,13 @@ class Music(commands.Cog):
         voice.resume()
         await ctx.send(f"{ctx.author.mention} 음악을 계속 재생합니다.")
 
-    @commands.command(name="강제연결해제", aliases=["나가", "제발나가", "quit", 'leave', 'l', "ㅣ"])
+    @commands.command(name="강제연결해제", description="봇 오류로 음악 재생에 문제가 발생했을 때 강제로 접속을 해제합니다.", aliases=["나가", "제발나가", "quit", 'leave', 'l', "ㅣ"])
     async def force_quit(self, ctx):
         voice = ctx.voice_client
         await voice.disconnect(force=True)
         await ctx.send("강제 연결 해제가 완료되었습니다.")
 
-    @commands.command(name="볼륨", aliases=["volume", "vol", "v", "패ㅣㅕㅡㄷ", "ㅍ"])
+    @commands.command(name="볼륨", description="음악의 볼륨을 조절합니다.", aliases=["volume", "vol", "v", "패ㅣㅕㅡㄷ", "ㅍ"])
     async def volume(self, ctx, vol: int = None):
         if vol > 100:
             return await ctx.send("숫자가 너무 큽니다.")
@@ -282,7 +282,7 @@ class Music(commands.Cog):
         await ctx.send(f"{ctx.author.mention} 볼륨이 `{vol}%`로 변경되었습니다.")
         await update_queue(ctx.guild.id, queue)
 
-    @commands.command(name="대기리스트", aliases=["재생리스트", "pl", "ql", "queuelist", "playlist", "비", "ㅔㅣ"])
+    @commands.command(name="대기리스트", description="현재 대기 리스트를 보여줍니다.", aliases=["재생리스트", "pl", "ql", "queuelist", "playlist", "비", "ㅔㅣ"])
     async def queue_list(self, ctx):
         queue_list = await get_queue(ctx.guild.id)
         if bool(queue_list) is False:
@@ -348,7 +348,7 @@ class Music(commands.Cog):
         embed_list.append(next_embed)
         await page.start_page(self.bot, ctx, embed_list, embed=True)
 
-    @commands.group(name="재생목록")
+    @commands.group(name="재생목록", description="자신의 재생목록을 보여줍니다.")
     async def playlist(self, ctx):
         if ctx.invoked_subcommand is None:
             with open("cache/guild_setup.json", "r") as f:
