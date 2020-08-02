@@ -10,16 +10,17 @@ loop = asyncio.get_event_loop()
 
 
 async def get_youtube(url):
+    return await loop.run_in_executor(None, _get_youtube, url)
+
+
+def _get_youtube(url):
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         ydl.cache.remove()
-        if url.startswith("https://") or url.startswith("http://") or url.startswith("youtu.be") or url.startswith(
-                "youtube.com"):
+        if url.startswith("https://") or url.startswith("http://") or url.startswith("youtu.be") or url.startswith("youtube.com"):
             dwld_url = url
             song = ydl.extract_info(dwld_url, download=False)
         else:
-            song_search = " ".join(url)
-            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-                song = ydl.extract_info(f"ytsearch1:{song_search}", download=False)["entries"][0]
+            song = ydl.extract_info(f"ytsearch1:{url}", download=False)["entries"][0]
         return song
 
 

@@ -101,7 +101,7 @@ class Dev(commands.Cog):
 
     @dev.command(name="exec", aliases=["이색"])
     async def exec(self, ctx, *, line: str):
-        res = eval(line)
+        res = exec(compile(line, "<string>", "exec"))
         await ctx.send(res)
 
 

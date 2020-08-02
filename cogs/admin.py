@@ -21,6 +21,15 @@ class Admin(commands.Cog):
             return True
         raise custom_errors.NotAdmin
 
+    @commands.command(name="뮤트")
+    async def mute(self, ctx, member: discord.Member, *, reason="없음"):
+        mute_role_id = await self.jbot_db_global.res_sql("SELECT mute_role FROM guild_setup WHERE guild_id=?", (ctx.guild.id,))
+        if not bool(mute_role_id[0]["mute_role"]):
+            return
+        mute_role = ctx.guild.get_role(mute_role_id[0]["mute_role"])
+        await member.add_roles(mute_role, reason=reason)
+        await ctx.send(f"{member.mention}을 뮤트했습니다. (사유: {reason})")
+
     @commands.command(name="경고", description="선택한 유저에게 경고를 부여합니다.")
     async def warn(self, ctx, member: discord.Member, *, reason="없음"):
         await admin.warn(self.jbot_db_global, self.jbot_db_warns, member, reason=reason, issued_by=ctx.author, ctx=ctx)
