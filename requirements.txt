@@ -2,8 +2,7 @@ discord.py[voice]
 pynacl
 youtube-dl
 beautifulsoup4
-pydustry
-requests
+aiohttp
 aiosqlite
 psutil
 nest-asyncio

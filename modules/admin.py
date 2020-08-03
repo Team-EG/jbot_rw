@@ -26,14 +26,31 @@ async def warn(jbot_db_global: jbot_db.JBotDB, jbot_db_warns: jbot_db.JBotDB, me
     embed.set_footer(text=datetime.datetime.today().strftime('%Y-%m-%d %X'))
     await ctx_or_message.channel.send(embed=embed)
     await send_to_log(jbot_db_global, guild, embed)
-    column_set = jbot_db.set_column({"name": "user_id", "type": "INTEGER", "default": False},
-                                    {"name": "date", "type": "TEXT", "default": False},
+    column_set = jbot_db.set_column({"name": "date", "type": "TEXT", "default": False},
+                                    {"name": "user_id", "type": "INTEGER", "default": False},
                                     {"name": "issued_by", "type": "INTEGER", "default": False},
                                     {"name": "reason", "type": "TEXT", "default": False})
-    lvl_exist = await jbot_db_warns.res_sql("SELECT name FROM sqlite_master WHERE type='table'", return_raw=True)
-    if f"{guild.id}_warns" not in lvl_exist:
+    warn_exist = await jbot_db_warns.res_sql("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (f"{guild.id}_warns",), return_raw=True)
+    if not bool(len(warn_exist)):
         await jbot_db_warns.exec_sql(f"""CREATE TABLE "{guild.id}_warns" ( {column_set} )""")
-    await jbot_db_warns.exec_sql(f"""INSERT INTO "{guild.id}_warns" VALUES (?, ?, ?, ?)""", (member.id, current_time, issued_by.id, reason))
+    await jbot_db_warns.exec_sql(f"""INSERT INTO "{guild.id}_warns" VALUES (?, ?, ?, ?)""", (current_time, member.id, issued_by.id, reason))
+    warn_list = await jbot_db_warns.res_sql(f"""SELECT * FROM "{guild.id}_warns" WHERE user_id=?""", (member.id,))
+    if len(warn_list) == 3:
+        mute_role_id = await jbot_db_global.res_sql("SELECT mute_role FROM guild_setup WHERE guild_id=?", (guild.id,))
+        if not bool(mute_role_id[0]["mute_role"]):
+            return
+        mute_role = guild.get_role(mute_role_id[0]["mute_role"])
+        await member.add_roles(mute_role, reason="경고 누적")
+        await ctx_or_message.channel.send(f"{member.mention} 경고 3회 누적으로 자동으로 뮤트되었습니다.")
+    if len(warn_list) == 6:
+        await member.send(f"`{guild.name}`에서 추방되었습니다. (사유: 경고 누적으로 자동 추방)")
+        await member.kick(reason="경고 누적")
+        await ctx_or_message.channel.send(f"`{member}` 경고 6회 누적으로 자동으로 추방되었습니다.")
+    if len(warn_list) == 9:
+        await member.send(f"`{guild.name}`에서 차단되었습니다. (사유: 경고 누적으로 자동 차단)")
+        await member.send("https://www.youtube.com/watch?v=FXPKJUE86d0")
+        await member.ban(reason="경고 누적")
+        await ctx_or_message.channel.send(f"`{member}` 경고 9회 누적으로 자동으로 차단되었습니다.")
 
 
 async def update_setup(jbot_db_global: jbot_db.JBotDB, bot: commands.Bot, ctx: commands.Context, msg: discord.Message,

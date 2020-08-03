@@ -39,12 +39,28 @@ class Help(commands.Cog):
             await ctx.send(embed=base_embed)
 
     @help.command(name="카테고리")
-    async def help_by_category(self, ctx, category_name: str = None):
+    async def help_by_category(self, ctx, category_name: str):
         base_embed = discord.Embed(title="명령어 리스트", description="카테고리별 명령어 리스트", color=discord.Color.from_rgb(225, 225, 225))
-        if category_name is None: return
+        if category_name not in cog_names.values():
+            return await ctx.send(f"`{category_name}`은(는) 존재하지 않는 카테고리입니다.")
+        selected = None
         for k, v in cog_names.items():
-            if category_name == v:
-                selected_category = k
+            if v == category_name:
+                selected = k
+        selected_cmds = [(x, y.get_commands()) for x, y in self.bot.cogs.items() if x == selected][0][1]
+        embed_list = []
+        curr_embed = base_embed.copy()
+        count = 1
+        for x in selected_cmds:
+            if count % 5 == 0:
+                embed_list.append(curr_embed)
+                curr_embed = base_embed.copy()
+            if x.description is None:
+                continue
+            curr_embed.add_field(name=x.name, value=str(x.description)+"\n사용법: "+str(x.usage)+"\n에일리어스: " + (', '.join(x.aliases) if bool(x.aliases) else "없음"), inline=False)
+            count += 1
+        embed_list.append(curr_embed)
+        await page.start_page(self.bot, ctx=ctx, lists=embed_list, embed=True)
 
     @help.command(name="검색")
     async def help_search(self, ctx):

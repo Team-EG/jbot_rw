@@ -217,6 +217,17 @@ class GuildSetup(commands.Cog):
         await admin.update_setup(self.jbot_db_global, self.bot, ctx, msg, [embed_ok, embed_no, embed_cancel],
                                  "greetpm", words)
 
+    @settings.command(name="뮤트역할")
+    async def mute_role_change(self, ctx, mute_role: discord.Role):
+        tgt = "뮤트 역할"
+        embed_ok = discord.Embed(title=f"{tgt} 변경", description="변경이 완료되었습니다.")
+        embed_no = discord.Embed(title=f"{tgt} 변경", description="변경이 취소되었습니다.")
+        embed_cancel = discord.Embed(title=f"{tgt} 변경", description="시간이 만료되었습니다.")
+        embed_change = discord.Embed(title=f"{tgt} 변경", description=f"정말로 뮤트 역할을 {mute_role.mention}(으)로 변경할까요?")
+        msg = await ctx.send(embed=embed_change)
+        await admin.update_setup(self.jbot_db_global, self.bot, ctx, msg, [embed_ok, embed_no, embed_cancel],
+                                 "mute_role", mute_role.id)
+
     @settings.command(name="토글", aliases=["온오프", "변경"])
     async def toggle_feature(self, ctx, to_change, on_off):
         changeable = {"레벨": "use_level", "도배방지": "use_antispam", "글로벌DB": "use_globaldata"}
