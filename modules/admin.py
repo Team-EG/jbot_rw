@@ -2,7 +2,7 @@ import discord
 import datetime
 import json
 import time
-from . import jbot_db, confirm
+from . import jbot_db, confirm, custom_errors
 from discord.ext import commands
 
 
@@ -19,7 +19,7 @@ async def warn(jbot_db_global: jbot_db.JBotDB, jbot_db_warns: jbot_db.JBotDB, me
     if reason is None:
         reason = "없음"
     guild = ctx_or_message.guild
-    embed = discord.Embed(title="맴버 경고", description=str(current_time), color=discord.Colour.red())
+    embed = discord.Embed(title="맴버 경고", description="경고 번호: "+str(current_time), color=discord.Colour.red())
     embed.add_field(name="경고를 받은 유저", value=member.mention + f" ({member.id})")
     embed.add_field(name="경고를 부여한 유저", value=issued_by.mention + f" ({issued_by.id})")
     embed.add_field(name="사유", value=reason)
@@ -51,6 +51,27 @@ async def warn(jbot_db_global: jbot_db.JBotDB, jbot_db_warns: jbot_db.JBotDB, me
         await member.send("https://www.youtube.com/watch?v=FXPKJUE86d0")
         await member.ban(reason="경고 누적")
         await ctx_or_message.channel.send(f"`{member}` 경고 9회 누적으로 자동으로 차단되었습니다.")
+
+
+async def remove_warn(jbot_db_global: jbot_db.JBotDB, jbot_db_warns: jbot_db.JBotDB, tgt_member: discord.Member, num, ctx: commands.Context = None, message: discord.Message = None):
+    global ctx_or_message
+    if message is None and ctx is None:
+        raise commands.MissingRequiredArgument
+    if message is None:
+        ctx_or_message = ctx
+    if ctx is None:
+        ctx_or_message = message
+    guild = ctx_or_message.guild
+    warn_list = await jbot_db_warns.res_sql(f"""SELECT * FROM "{guild.id}_warns" WHERE user_id=? AND date=?""", (tgt_member.id, num))
+    if len(warn_list) == 0:
+        raise custom_errors.FailedFinding
+    await jbot_db_warns.exec_sql(f"""DELETE FROM "{guild.id}_warns" WHERE user_id=? AND date=?""", (tgt_member.id, num))
+    embed = discord.Embed(title="맴버 경고 삭제됨", color=discord.Colour.red())
+    embed.add_field(name="경고를 받았던 유저", value=tgt_member.mention + f" ({tgt_member.id})")
+    embed.add_field(name="경고를 받은 날짜", value=num)
+    embed.set_footer(text=datetime.datetime.today().strftime('%Y-%m-%d %X'))
+    await ctx_or_message.channel.send(embed=embed)
+    await send_to_log(jbot_db_global, guild, embed)
 
 
 async def update_setup(jbot_db_global: jbot_db.JBotDB, bot: commands.Bot, ctx: commands.Context, msg: discord.Message,

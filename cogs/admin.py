@@ -21,18 +21,31 @@ class Admin(commands.Cog):
             return True
         raise custom_errors.NotAdmin
 
-    @commands.command(name="뮤트")
+    @commands.command(name="뮤트", description="선택한 유저를 뮤트합니다.")
     async def mute(self, ctx, member: discord.Member, *, reason="없음"):
         mute_role_id = await self.jbot_db_global.res_sql("SELECT mute_role FROM guild_setup WHERE guild_id=?", (ctx.guild.id,))
         if not bool(mute_role_id[0]["mute_role"]):
-            return
+            return await ctx.send("먼저 뮤트 역할을 등록해주세요.")
         mute_role = ctx.guild.get_role(mute_role_id[0]["mute_role"])
         await member.add_roles(mute_role, reason=reason)
         await ctx.send(f"{member.mention}을 뮤트했습니다. (사유: {reason})")
 
+    @commands.command(name="언뮤트", description="선택한 유저를 언뮤트합니다.")
+    async def unmute(self, ctx, member: discord.Member):
+        mute_role_id = await self.jbot_db_global.res_sql("SELECT mute_role FROM guild_setup WHERE guild_id=?", (ctx.guild.id,))
+        if not bool(mute_role_id[0]["mute_role"]):
+            return await ctx.send("먼저 뮤트 역할을 등록해주세요.")
+        mute_role = ctx.guild.get_role(mute_role_id[0]["mute_role"])
+        await member.remove_roles(mute_role)
+        await ctx.send(f"{member.mention}을 언뮤트했습니다.")
+
     @commands.command(name="경고", description="선택한 유저에게 경고를 부여합니다.")
     async def warn(self, ctx, member: discord.Member, *, reason="없음"):
         await admin.warn(self.jbot_db_global, self.jbot_db_warns, member, reason=reason, issued_by=ctx.author, ctx=ctx)
+
+    @commands.command(name="경고삭제", description="선택한 경고를 삭제합니다.")
+    async def remove_warn(self, ctx, member: discord.Member, num):
+        await admin.remove_warn(self.jbot_db_global, self.jbot_db_warns, member, num, ctx=ctx)
 
     @commands.command(name="추방", description="선택한 유저를 추방합니다.")
     async def kick(self, ctx, member: discord.Member, *, reason="없음"):

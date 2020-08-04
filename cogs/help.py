@@ -50,9 +50,9 @@ class Help(commands.Cog):
         selected_cmds = [(x, y.get_commands()) for x, y in self.bot.cogs.items() if x == selected][0][1]
         embed_list = []
         curr_embed = base_embed.copy()
-        count = 1
+        count = 0
         for x in selected_cmds:
-            if count % 5 == 0:
+            if count != 0 and count % 5 == 0:
                 embed_list.append(curr_embed)
                 curr_embed = base_embed.copy()
             if x.description is None:

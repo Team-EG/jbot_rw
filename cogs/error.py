@@ -13,8 +13,6 @@ class Error(commands.Cog):
     async def on_command_error(self, ctx, error):
         with open("bot_settings.json", "r") as f:
             bot_settings = json.load(f)
-        logger = logging.getLogger("discord")
-        logger.error(error)
         if bot_settings["debug"] is True:
             await ctx.send("디버그 모드가 켜져있습니다.")
             raise error
@@ -30,9 +28,9 @@ class Error(commands.Cog):
         elif isinstance(error, commands.CheckFailure):
             embed.add_field(name="CheckFailure", value="이 서버에서는 해당 명령어를 사용할 수 없도록 설정되어있습니다.")
         elif isinstance(error, commands.CommandOnCooldown):
-            embed.add_field(name="CommandOnCooldown", value='쿨다운이 아직 {:.2f}초 남았습니다.'.format(error.retry_after))
+            embed.add_field(name="CommandOnCooldown", value=f'쿨다운이 아직 {error.retry_after:.2f}초 남았습니다.')
         elif isinstance(error, commands.MissingRequiredArgument):
-            embed.add_field(name="MissingRequiredArgument", value=f"누락된 필수 항목이 있습니다. (`{error.param.name}`)") # ', '.join([x.split(':')[0] for x in error.param])
+            embed.add_field(name="MissingRequiredArgument", value=f"누락된 필수 항목이 있습니다. (`{error.param.name}`)")
         elif isinstance(error, custom_errors.NotWhitelisted):
             embed.add_field(name="NotWhitelisted", value="화이트리스트에 등록된 유저가 아닙니다.")
         elif isinstance(error, custom_errors.NotGuildOwner):
@@ -42,8 +40,12 @@ class Error(commands.Cog):
                                                         f"금지된 단어 리스트: `{', '.join(error.banned)}`")
         elif isinstance(error, custom_errors.NotAdmin):
             embed.add_field(name="NotAdmin", value="이 서버의 관리자가 아닙니다.")
+        elif isinstance(error, custom_errors.FailedFinding):
+            embed.add_field(name="FailedFinding", value="DB에서 해당 값의 검색을 실패했습니다.")
         else:
-            embed.add_field(name="예기치 않은 오류 발생", value=f"`{error}`")
+            logger = logging.getLogger("discord")
+            logger.error(error)
+            embed.add_field(name="예기치 않은 오류 발생", value=f"```py\n{error}```")
         await ctx.message.add_reaction("⚠")
         await ctx.send(embed=embed)
 

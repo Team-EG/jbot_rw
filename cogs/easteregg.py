@@ -47,6 +47,7 @@ class EasterEgg(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(name="굴라크")
+    @commands.cooldown(rate=1, per=5, type=commands.BucketType.user)
     async def gulag(self, ctx, amount: int = 1):
         if amount > 15:
             amount = 15

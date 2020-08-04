@@ -21,6 +21,10 @@ class ConnectionTimeout(commands.CommandError):
     pass
 
 
+class FailedFinding(commands.CommandError):
+    pass
+
+
 class IllegalString(commands.CommandError):
     def __init__(self, banned: list = None):
         self.banned = banned

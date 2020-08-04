@@ -18,7 +18,7 @@ class Utils(commands.Cog):
                        "World, Hello!",
                        "hello world",
                        "```py\nprint('Hello, World!')```",
-                       "```c\n#include <stdio.h>\n\nvoid main()\n{\n    printf('Hello, World!');\n}\n",
+                       "```c\n#include <stdio.h>\n\nvoid main()\n{\n    printf('Hello, World!');\n}\n```",
                        "안녕, 세상!",
                        "hELLO< wORLD1"]
         await ctx.send(random.choice(hello_world))

@@ -111,9 +111,8 @@ class Music(commands.Cog):
 
     @commands.command(name="재생", description="음악을 재생합니다.", aliases=["play", "p", "ㅔ", "대기", "queue", "q", "ㅂ"])
     async def play(self, ctx, *, url):
-        guild_setup = await self.jbot_db_global.res_sql("""SELECT prefix FROM guild_setup WHERE guild_id=?""", (ctx.guild.id,))
         msg = await ctx.send(
-            f"잠시만 기다려주세요...\n팁: 만약에 너무 오랫동안 재생이 안된다면 `강제연결해제` (`{guild_setup[0]['prefix']}강제연결해제`) 명령어를 사용해주세요.")
+            f"잠시만 기다려주세요...\n팁: 만약에 너무 오랫동안 재생이 안된다면 `강제연결해제` (`{ctx.prefix}강제연결해제`) 명령어를 사용해주세요.")
         embed = discord.Embed(title="유튜브 음악 재생", color=discord.Colour.from_rgb(255, 0, 0))
         user_voice = ctx.message.author.voice
         if user_voice is None:
@@ -351,17 +350,15 @@ class Music(commands.Cog):
     @commands.group(name="재생목록", description="자신의 재생목록을 보여줍니다.")
     async def playlist(self, ctx):
         if ctx.invoked_subcommand is None:
-            with open("cache/guild_setup.json", "r") as f:
-                guild_setup = json.load(f)
             playlist_list = await self.jbot_db_global.res_sql("SELECT * FROM playlist WHERE user_id=?", (ctx.author.id,))
             embed = discord.Embed(title="재생목록",
                                   description=f"영상 {len(playlist_list)}개\n"
-                                              f"영상 추가는 `{guild_setup[str(ctx.guild.id)]['prefix']}재생목록 추가` 명령어로, 영상 제거는 `{guild_setup[str(ctx.guild.id)]['prefix']}재생목록 제거` 명령어를 이용해주세요.",
+                                              f"영상 추가는 `{ctx.prefix}재생목록 추가` 명령어로, 영상 제거는 `{ctx.prefix}재생목록 제거` 명령어를 이용해주세요.",
                                   color=discord.Colour.from_rgb(225, 225, 225))
             embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
             if len(playlist_list) == 0:
                 return await ctx.send(f"재생목록에 영상이 하나도 없네요...\n"
-                                      f"영상 추가는 `{guild_setup[str(ctx.guild.id)]['prefix']}재생목록 추가` 명령어로, 영상 제거는 `{guild_setup[str(ctx.guild.id)]['prefix']}재생목록 제거` 명령어를 이용해주세요.")
+                                      f"영상 추가는 `{ctx.prefix}재생목록 추가` 명령어로, 영상 제거는 `{ctx.prefix}재생목록 제거` 명령어를 이용해주세요.")
             embed_list = []
             global tgt_embed
             count = 0
