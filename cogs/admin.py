@@ -21,7 +21,7 @@ class Admin(commands.Cog):
             return True
         raise custom_errors.NotAdmin
 
-    @commands.command(name="뮤트", description="선택한 유저를 뮤트합니다.")
+    @commands.command(name="뮤트", description="선택한 유저를 뮤트합니다.", usage="`뮤트 [유저] (사유)`")
     async def mute(self, ctx, member: discord.Member, *, reason="없음"):
         mute_role_id = await self.jbot_db_global.res_sql("SELECT mute_role FROM guild_setup WHERE guild_id=?", (ctx.guild.id,))
         if not bool(mute_role_id[0]["mute_role"]):
@@ -30,7 +30,7 @@ class Admin(commands.Cog):
         await member.add_roles(mute_role, reason=reason)
         await ctx.send(f"{member.mention}을 뮤트했습니다. (사유: {reason})")
 
-    @commands.command(name="언뮤트", description="선택한 유저를 언뮤트합니다.")
+    @commands.command(name="언뮤트", description="선택한 유저를 언뮤트합니다.", usage="`언뮤트 [유저]`")
     async def unmute(self, ctx, member: discord.Member):
         mute_role_id = await self.jbot_db_global.res_sql("SELECT mute_role FROM guild_setup WHERE guild_id=?", (ctx.guild.id,))
         if not bool(mute_role_id[0]["mute_role"]):
@@ -39,28 +39,28 @@ class Admin(commands.Cog):
         await member.remove_roles(mute_role)
         await ctx.send(f"{member.mention}을 언뮤트했습니다.")
 
-    @commands.command(name="경고", description="선택한 유저에게 경고를 부여합니다.")
+    @commands.command(name="경고", description="선택한 유저에게 경고를 부여합니다.", usage="`경고 [유저] (사유)`")
     async def warn(self, ctx, member: discord.Member, *, reason="없음"):
         await admin.warn(self.jbot_db_global, self.jbot_db_warns, member, reason=reason, issued_by=ctx.author, ctx=ctx)
 
-    @commands.command(name="경고삭제", description="선택한 경고를 삭제합니다.")
+    @commands.command(name="경고삭제", description="선택한 경고를 삭제합니다.", usage="`경고삭제 [유저] [경고번호]`")
     async def remove_warn(self, ctx, member: discord.Member, num):
         await admin.remove_warn(self.jbot_db_global, self.jbot_db_warns, member, num, ctx=ctx)
 
-    @commands.command(name="추방", description="선택한 유저를 추방합니다.")
+    @commands.command(name="추방", description="선택한 유저를 추방합니다.", usage="`추방 [유저] (사유)`")
     async def kick(self, ctx, member: discord.Member, *, reason="없음"):
         await member.send(f"`{ctx.author.guild.name}`에서 추방되었습니다. (사유: {reason}, {ctx.author}이(가) 추방함)")
         await member.kick(reason=reason+f" ({ctx.author}이(가) 추방함)")
         await ctx.send(f"`{member}`을(를) 추방했습니다. (사유: {reason})")
 
-    @commands.command(name="차단", description="선택한 유저를 차단합니다.")
+    @commands.command(name="차단", description="선택한 유저를 차단합니다.", usage="`차단 [유저] (사유)`")
     async def ban(self, ctx, member: discord.Member, *, reason="없음"):
         await member.send(f"`{ctx.author.guild.name}`에서 차단되었습니다. (사유: {reason}, {ctx.author}이(가) 차단함)")
         await member.send("https://www.youtube.com/watch?v=FXPKJUE86d0")
         await member.ban(reason=reason + f" ({ctx.author}이(가) 차단함)")
         await ctx.send(f"`{member}`을(를) 차단했습니다. (사유: {reason})")
 
-    @commands.group(name="정리", description="메시지를 대량으로 삭제합니다.")
+    @commands.group(name="정리", description="메시지를 대량으로 삭제합니다.", usage="`정리 도움` 명령어를 참고해주세요.")
     async def purge(self, ctx, amount: typing.Optional[int] = None):
         if ctx.invoked_subcommand is None and amount is not None:
             if amount > 100:
@@ -68,6 +68,14 @@ class Admin(commands.Cog):
             await ctx.channel.purge(limit=amount+1)
             msg = await ctx.send(f"메시지 {amount}개를 정리했습니다.\n`이 메시지는 5초 후 삭제됩니다.`")
             await msg.delete(delay=5)
+
+    @purge.command(name="도움")
+    async def purge_help(self, ctx):
+        embed = discord.Embed(title="정리 명령어 도움말", color=discord.Color.from_rgb(225, 225, 225))
+        embed.add_field(name="정리 [개수]", value="해당 개수만큼의 메시지를 삭제합니다.", inline=False)
+        embed.add_field(name="정리 유저 [대상 유저]", value="선택한 유저가 보낸 메시지들을 삭제합니다.", inline=False)
+        embed.add_field(name="정리 메시지 [메시지 ID]", value="선택한 메시지까지의 모든 메시지들을 삭제합니다.", inline=False)
+        await ctx.send(embed=embed)
 
     @purge.command(name="유저", description="선택한 유저가 보낸 메시지들을 삭제합니다.")
     async def purge_user(self, ctx, user: discord.Member, limit: int):

@@ -109,7 +109,7 @@ class Music(commands.Cog):
     def cog_unload(self):
         loop.run_until_complete(self.jbot_db_global.close_db())
 
-    @commands.command(name="재생", description="음악을 재생합니다.", aliases=["play", "p", "ㅔ", "대기", "queue", "q", "ㅂ"])
+    @commands.command(name="재생", description="음악을 재생합니다.", usage="`재생 [유튜브 URL 또는 제목]`", aliases=["play", "p", "ㅔ", "대기", "queue", "q", "ㅂ"])
     async def play(self, ctx, *, url):
         msg = await ctx.send(
             f"잠시만 기다려주세요...\n팁: 만약에 너무 오랫동안 재생이 안된다면 `강제연결해제` (`{ctx.prefix}강제연결해제`) 명령어를 사용해주세요.")
@@ -263,7 +263,7 @@ class Music(commands.Cog):
         await voice.disconnect(force=True)
         await ctx.send("강제 연결 해제가 완료되었습니다.")
 
-    @commands.command(name="볼륨", description="음악의 볼륨을 조절합니다.", aliases=["volume", "vol", "v", "패ㅣㅕㅡㄷ", "ㅍ"])
+    @commands.command(name="볼륨", description="음악의 볼륨을 조절합니다.", usage="`볼륨 [1~100]`", aliases=["volume", "vol", "v", "패ㅣㅕㅡㄷ", "ㅍ"])
     async def volume(self, ctx, vol: int = None):
         if vol > 100:
             return await ctx.send("숫자가 너무 큽니다.")

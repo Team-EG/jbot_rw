@@ -55,7 +55,7 @@ class GuildSetup(commands.Cog):
             return
         await self.jbot_db_global.exec_sql("DELETE FROM guild_setup WHERE guild_id=?", (guild.id,))
 
-    @commands.group(name="설정", description="봇의 기능과 관련된 부분을 설정합니다.")
+    @commands.group(name="설정", description="봇의 기능과 관련된 부분을 설정합니다.", usage="`설정 도움` 명령어를 참고해주세요.")
     async def settings(self, ctx):
         if ctx.invoked_subcommand is None:
             guild_data = (await self.jbot_db_global.res_sql("SELECT * FROM guild_setup WHERE guild_id=?", (ctx.guild.id,)))[0]

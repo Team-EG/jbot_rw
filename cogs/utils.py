@@ -3,14 +3,16 @@ import psutil
 import datetime
 import os
 import random
+import platform
 from discord.ext import commands
-from modules import jbot_db, confirm
+from modules import jbot_db, confirm, page
 
 
 class Utils(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.jbot_db_global = jbot_db.JBotDB("jbot_db_global")
+        self.jbot_db_warns = jbot_db.JBotDB("jbot_db_warns")
 
     @commands.command(name="안녕", description="Hello, World!")
     async def hello(self, ctx):
@@ -55,10 +57,13 @@ class Utils(commands.Cog):
         p = psutil.Process(os.getpid())
         uptime_bot = str(datetime.datetime.now() - datetime.datetime.fromtimestamp(p.create_time()))
         uptime_bot = uptime_bot.split(".")[0]
-        embed = discord.Embed(title="제이봇 정보", description="Developed by [Team EG](https://discord.gg/gqJBhar)", colour=discord.Color.from_rgb(225, 225, 225))
-        embed.add_field(name="들어와 있는 서버수", value=str(servers) + "개")
-        embed.add_field(name="같이 있는 유저수", value=str(users) + "명")
-        embed.add_field(name="업타임", value=uptime_bot)
+        embed = discord.Embed(title="제이봇 정보", description="Developed by [eunwoo1104](https://discord.gg/nJuW3Xs) (Originally by Team EG)", colour=discord.Color.from_rgb(225, 225, 225))
+        embed.add_field(name="파이썬 버전", value=platform.python_version(), inline=False)
+        embed.add_field(name="discord.py 버전", value=discord.__version__, inline=False)
+        embed.add_field(name="들어와 있는 서버수", value=str(servers) + "개", inline=False)
+        embed.add_field(name="같이 있는 유저수", value=str(users) + "명", inline=False)
+        embed.add_field(name="업타임", value=uptime_bot, inline=False)
+        embed.set_thumbnail(url=self.bot.user.avatar_url)
         await ctx.send(embed=embed)
 
     @commands.group(name="서버", description="서버 정보를 보여줍니다.", aliases=["서버정보"])
@@ -151,6 +156,27 @@ class Utils(commands.Cog):
             await owner.send(ticket)
             return await ctx.send("성공적으로 건의사항을 보냈습니다!")
         await ctx.send("건의사항 보내기가 취소되었습니다.")
+
+    @commands.command(name="경고리스트", description="자신이 보유한 경고들을 보여줍니다.", aliases=["경고보기"])
+    async def warn_list(self, ctx, user: discord.Member = None):
+        user = user if user is not None else ctx.author
+        warn_list = await self.jbot_db_warns.res_sql(f"""SELECT * FROM "{ctx.guild.id}_warns" WHERE user_id=?""", (user.id,))
+        if not bool(warn_list):
+            return await ctx.send(f"{user.mention}님은 받은 경고가 없습니다.")
+        base_embed = discord.Embed(title=f"{user.name}님의 경고리스트", description=f"총 {len(warn_list)}개", colour=discord.Color.red())
+        embed_list = []
+        tgt_embed = base_embed.copy()
+        count = 0
+        for x in warn_list:
+            if count != 0 and count % 5 == 0:
+                embed_list.append(tgt_embed)
+                tgt_embed = base_embed.copy()
+            issued_by = ctx.guild.get_member(x['issued_by'])
+            issued_by = issued_by.mention if issued_by is not None else f"이미 이 서버에서 나간 유저입니다. (유저 ID: {x['issued_by']})"
+            tgt_embed.add_field(name="경고번호: " + str(x["date"]), value=f"경고를 부여한 유저: {issued_by}\n사유: {x['reason']}", inline=False)
+            count += 1
+        embed_list.append(tgt_embed)
+        await page.start_page(bot=self.bot, ctx=ctx, lists=embed_list, embed=True)
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):

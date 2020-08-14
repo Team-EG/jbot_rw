@@ -44,9 +44,7 @@ async def get_prefix(bot, message):
         await jbot_db_global.exec_sql("INSERT INTO guild_setup(guild_id) VALUES (?)", (message.guild.id,))
         data = (await jbot_db_global.res_sql("""SELECT prefix FROM guild_setup WHERE guild_id=?""", (message.guild.id,)))
         guild_prefix = data[0]["prefix"]
-    except KeyError:
-        guild_prefix = "제이봇 "
-    return commands.when_mentioned_or(*[guild_prefix])(bot, message)
+    return commands.when_mentioned_or(*['제이봇 ', 'j!', guild_prefix])(bot, message)
 
 
 bot = commands.AutoShardedBot(command_prefix=get_prefix, help_command=None)
@@ -179,9 +177,6 @@ async def _new_cog(ctx):
         await msg.remove_reaction(reaction, ctx.author)
 
 
-# cog를 불러오는 스크립트
-for filename in os.listdir("./cogs"):
-    if filename.endswith('.py'):
-        bot.load_extension(f'cogs.{filename.replace(".py", "")}')
+[bot.load_extension(f"cogs.{x.replace('.py', '')}") for x in os.listdir("./cogs") if x.endswith('.py')]
 
 bot.run(get_bot_settings()["canary_token"])

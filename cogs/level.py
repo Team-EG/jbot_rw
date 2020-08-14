@@ -22,7 +22,7 @@ class Level(commands.Cog):
     def cog_unload(self):
         loop.run_until_complete(self.jbot_db_level.close_db())
 
-    @commands.command(name="레벨", description="자신의 레벨을 출력합니다.")
+    @commands.command(name="레벨", description="자신의 레벨을 출력합니다.", usage="`레벨 (유저)`")
     async def level(self, ctx, user: discord.Member = None):
         if user is None:
             user = ctx.author

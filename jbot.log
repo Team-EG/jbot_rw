@@ -1,23 +1,5 @@
-2020-08-04 11:02:54,385:INFO:discord: DB Loaded.
-2020-08-04 11:02:55,043:INFO:discord.client: logging in using static token
-2020-08-04 11:02:56,078:INFO:discord.gateway: Shard ID 0 has sent the IDENTIFY payload.
-2020-08-04 11:02:56,371:INFO:discord.gateway: Shard ID 0 has connected to Gateway: ["gateway-prd-main-lk13",{"micros":97582,"calls":["discord-sessions-prd-1-46",{"micros":95831,"calls":["start_session",{"micros":92832,"calls":["api-prd-main-cvps",{"micros":85475,"calls":["get_user",{"micros":4265},"add_authorized_ip",{"micros":3755},"get_guilds",{"micros":9609},"coros_wait",{"micros":1}]}]},"guilds_connect",{"micros":9,"calls":[]},"presence_connect",{"micros":0,"calls":[]}]}]}] (Session ID: 4206d935ed90f532e2aa06a8ebb1a06e).
-2020-08-04 11:02:58,395:INFO:discord: Bot online.
-2020-08-04 11:04:31,285:ERROR:discord: Command raised an exception: HTTPException: 400 Bad Request (error code: 50035): Invalid Form Body
-In content: Must be 2000 or fewer in length.
-2020-08-04 11:09:07,071:ERROR:discord: Command raised an exception: SyntaxError: 'await' outside function (<string>, line 1)
-2020-08-04 11:09:32,077:ERROR:discord: Command raised an exception: HTTPException: 400 Bad Request (error code: 50006): Cannot send an empty message
-2020-08-04 11:10:09,882:ERROR:discord: Command raised an exception: HTTPException: 400 Bad Request (error code: 50006): Cannot send an empty message
-2020-08-04 11:10:58,479:ERROR:discord: Command raised an exception: FileNotFoundError: [Errno 2] No such file or directory: 'cache/guild_setup.json'
-2020-08-04 11:14:32,628:INFO:discord.voice_client: Connecting to voice...
-2020-08-04 11:14:32,628:INFO:discord.voice_client: Starting voice handshake...
-2020-08-04 11:14:33,018:INFO:discord.voice_client: Voice handshake complete. Endpoint found south-korea759.discord.media (IP: 162.159.138.234)
-2020-08-04 11:14:33,100:INFO:discord.gateway: selected the voice protocol for use (xsalsa20_poly1305_lite)
-2020-08-04 11:14:33,107:INFO:discord.gateway: received secret key for voice connection
-2020-08-04 11:17:22,431:INFO:discord.player: Preparing to terminate ffmpeg process 38292.
-2020-08-04 11:17:22,431:INFO:discord.player: ffmpeg process 38292 has not terminated. Waiting to terminate...
-2020-08-04 11:17:22,433:INFO:discord.voice_client: The voice handshake is being terminated for Channel ID 725244554701176852 (Guild ID 724628357702221906)
-2020-08-04 11:17:22,433:INFO:discord.voice_client: The voice client has been removed for Channel ID 725244554701176852 (Guild ID 724628357702221906)
-2020-08-04 11:17:22,435:INFO:discord.voice_client: Disconnecting from voice normally, close code 1000.
-2020-08-04 11:17:22,436:INFO:discord.player: ffmpeg process 38292 should have terminated with a return code of 1.
-2020-08-04 11:17:23,444:ERROR:discord: Command raised an exception: ClientException: Not connected to voice.
+2020-08-14 16:00:05,767:INFO:discord: DB Loaded.
+2020-08-14 16:00:06,554:INFO:discord.client: logging in using static token
+2020-08-14 16:00:07,568:INFO:discord.gateway: Shard ID 0 has sent the IDENTIFY payload.
+2020-08-14 16:00:07,815:INFO:discord.gateway: Shard ID 0 has connected to Gateway: ["gateway-prd-main-z8m9",{"micros":45076,"calls":["discord-sessions-prd-2-78",{"micros":43214,"calls":["start_session",{"micros":37492,"calls":["api-prd-main-mddn",{"micros":32769,"calls":["get_user",{"micros":5126},"add_authorized_ip",{"micros":1826},"get_guilds",{"micros":1813},"coros_wait",{"micros":1}]}]},"guilds_connect",{"micros":6,"calls":[]},"presence_connect",{"micros":1,"calls":[]}]}]}] (Session ID: 0af742a4ac1f1aaf511beddfee4d6f26).
+2020-08-14 16:00:09,850:INFO:discord: Bot online.
