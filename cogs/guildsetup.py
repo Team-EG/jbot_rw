@@ -18,7 +18,7 @@ class GuildSetup(commands.Cog):
         loop.run_until_complete(self.jbot_db_global.close_db())
 
     async def cog_check(self, ctx):
-        if not ctx.author == ctx.guild.owner:
+        if ctx.author != ctx.guild.owner:
             raise custom_errors.NotGuildOwner
         banned = ["True", "False", "None"]
         for x in banned:
@@ -72,6 +72,7 @@ class GuildSetup(commands.Cog):
             ann_channel = guild_data["announcement"]
             welcome_channel = guild_data["welcome_channel"]
             mute_role = guild_data["mute_role"]
+            starboard_channel = guild_data["starboard_channel"]
             if log_channel != "없음":
                 log_channel = (ctx.guild.get_channel(int(log_channel))).mention
             if ann_channel != "없음":
@@ -80,6 +81,8 @@ class GuildSetup(commands.Cog):
                 welcome_channel = (ctx.guild.get_channel(int(welcome_channel))).mention
             if mute_role != "없음":
                 mute_role = (ctx.guild.get_role(int(mute_role))).mention
+            if starboard_channel != "없음":
+                starboard_channel = (ctx.guild.get_channel(int(starboard_channel))).mention
             embed = discord.Embed(title="현재 서버 설정",
                                   description=f"변경을 원하신다면 `{str(guild_data['prefix'])}설정 도움` 명령어를 참고해주세요.")
             embed.set_thumbnail(url=ctx.guild.icon_url)
@@ -95,6 +98,7 @@ class GuildSetup(commands.Cog):
             embed.add_field(name="도배 방지 기능을 사용하나요?", value=str(guild_data["use_antispam"]))
             embed.add_field(name="모든 서버와 동기화된 대화 데이터베이스를 사용하나요?", value=str(guild_data["use_globaldata"]))
             embed.add_field(name="뮤트 역할", value=str(mute_role))
+            embed.add_field(name="박제 채널", value=str(starboard_channel))
             await ctx.send(embed=embed)
 
     @settings.command(name="프리픽스", aliases=["프리픽스교체"])
@@ -227,6 +231,23 @@ class GuildSetup(commands.Cog):
         msg = await ctx.send(embed=embed_change)
         await admin.update_setup(self.jbot_db_global, self.bot, ctx, msg, [embed_ok, embed_no, embed_cancel],
                                  "mute_role", mute_role.id)
+
+    @settings.command(name="박제채널")
+    async def welcome_channel_change(self, ctx, channel: discord.TextChannel = None):
+        tgt = "메시지 박제 채널"
+        embed_ok = discord.Embed(title=f"{tgt} 변경", description="변경이 완료되었습니다.")
+        embed_no = discord.Embed(title=f"{tgt} 변경", description="변경이 취소되었습니다.")
+        embed_cancel = discord.Embed(title=f"{tgt} 변경", description="시간이 만료되었습니다.")
+        if channel is None:
+            embed_off = discord.Embed(title=f"{tgt} 변경", description="정말로 메시지 박제 기능을 비활성화 할까요?")
+            msg = await ctx.send(embed=embed_off)
+            channel_id = None
+        else:
+            embed_change = discord.Embed(title=f"{tgt} 변경", description=f"정말로 메시지 박제 채널을 {channel.mention}로 변경할까요?")
+            msg = await ctx.send(embed=embed_change)
+            channel_id = channel.id
+        await admin.update_setup(self.jbot_db_global, self.bot, ctx, msg, [embed_ok, embed_no, embed_cancel],
+                                 "starboard_channel", channel_id)
 
     @settings.command(name="토글", aliases=["온오프", "변경"])
     async def toggle_feature(self, ctx, to_change, on_off):

@@ -13,6 +13,21 @@ class Spam(commands.Cog):
         self.jbot_db_global = jbot_db.JBotDB("jbot_db_global")
         self.jbot_db_warns = jbot_db.JBotDB("jbot_db_warns")
 
+    @commands.command(name="도배리셋", description="도배 카운트를 리셋합니다.", usage="`도배리셋 (유저)`")
+    @commands.has_permissions(manage_messages=True)
+    async def reset_spam(self, ctx, tgt: discord.Member = None):
+        if tgt is None:
+            os.remove(f"temp/{ctx.guild.id}_spam.json")
+            return await ctx.send("도배 카운트 리셋이 완료되었습니다.")
+        with open(f"temp/{ctx.guild.id}_spam.json", "r") as f:
+            time_data = json.load(f)
+        if str(tgt.id) not in time_data.keys():
+            return await ctx.send("그 유저는 도배 카운트 기록에 없습니다.")
+        del time_data[str(tgt.id)]
+        with open(f"temp/{ctx.guild.id}_spam.json", "w") as f:
+            json.dump(time_data, f, indent=4)
+        await ctx.send("그 유저의 도배 카운트 리셋이 완료되었습니다.")
+
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.guild is None:  # DM

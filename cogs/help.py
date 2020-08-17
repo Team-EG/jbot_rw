@@ -45,7 +45,7 @@ class Help(commands.Cog):
     @commands.group(name="도움", description="봇의 도움말 명령어를 출력합니다.", aliases=["도움말", "help"])
     async def help(self, ctx):
         if ctx.invoked_subcommand is None:
-            base_embed = discord.Embed(title="명령어 리스트", description="한눈에 보는 명령어 리스트", color=discord.Color.from_rgb(225, 225, 225))
+            base_embed = discord.Embed(title="명령어 리스트", description="한눈에 보는 명령어 리스트\n자세한 명령어 정보는 `도움 카테고리 [카테고리 이름]` 또는 `도움 검색 [명령어 이름]`을 참고해주세요.", color=discord.Color.from_rgb(225, 225, 225))
             cogs = [(x, y.get_commands()) for x, y in self.bot.cogs.items()]
             for x in cogs:
                 if x[0] in prohibited_cogs:
