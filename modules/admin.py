@@ -91,7 +91,10 @@ async def update_setup(jbot_db_global: jbot_db.JBotDB, bot: commands.Bot, ctx: c
 
 async def send_to_log(jbot_db_global: jbot_db.JBotDB, guild: discord.Guild, embed: discord.Embed):
     guild_data = await jbot_db_global.res_sql("SELECT log_channel FROM guild_setup WHERE guild_id=?", (guild.id,))
-    log_channel = guild.get_channel(guild_data[0]["log_channel"])
+    try:
+        log_channel = guild.get_channel(guild_data[0]["log_channel"])
+    except IndexError:
+        return
     if log_channel is None:
         return
     await log_channel.send(embed=embed)

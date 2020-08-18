@@ -18,13 +18,9 @@ class GuildSetup(commands.Cog):
         loop.run_until_complete(self.jbot_db_global.close_db())
 
     async def cog_check(self, ctx):
-        if ctx.author != ctx.guild.owner:
-            raise custom_errors.NotGuildOwner
-        banned = ["True", "False", "None"]
-        for x in banned:
-            if x in str(ctx.message.content):
-                raise custom_errors.IllegalString(banned)
-        return True
+        if ctx.author.guild_permissions.administrator or ctx.author == ctx.guild.owner:
+            return True
+        raise custom_errors.NotGuildOwner
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
@@ -123,7 +119,7 @@ class GuildSetup(commands.Cog):
         await admin.update_setup(self.jbot_db_global, self.bot, ctx, msg, [embed_ok, embed_no, embed_cancel],
                                  "talk_prefix", prefix)
 
-    @settings.command(name="로그")
+    @settings.command(name="로그", aliases=["로그채널"])
     async def log_channel_change(self, ctx, channel: discord.TextChannel = None):
         tgt = "서버 로그 채널"
         embed_ok = discord.Embed(title=f"{tgt} 변경", description="변경이 완료되었습니다.")
@@ -137,7 +133,8 @@ class GuildSetup(commands.Cog):
             embed_change = discord.Embed(title=f"{tgt} 변경", description=f"정말로 서버 로그 채널을 {channel.mention}로 변경할까요?")
             msg = await ctx.send(embed=embed_change)
             channel_id = channel.id
-        await admin.update_setup(self.jbot_db_global, self.bot, ctx, msg, [embed_ok, embed_no, embed_cancel], "log_channel", channel_id)
+        await admin.update_setup(self.jbot_db_global, self.bot, ctx, msg, [embed_ok, embed_no, embed_cancel],
+                                 "log_channel", channel_id)
 
     @settings.command(name="공지채널")
     async def ann_channel_change(self, ctx, channel: discord.TextChannel = None):
@@ -233,7 +230,7 @@ class GuildSetup(commands.Cog):
                                  "mute_role", mute_role.id)
 
     @settings.command(name="박제채널")
-    async def welcome_channel_change(self, ctx, channel: discord.TextChannel = None):
+    async def starboard_channel_change(self, ctx, channel: discord.TextChannel = None):
         tgt = "메시지 박제 채널"
         embed_ok = discord.Embed(title=f"{tgt} 변경", description="변경이 완료되었습니다.")
         embed_no = discord.Embed(title=f"{tgt} 변경", description="변경이 취소되었습니다.")
@@ -264,9 +261,24 @@ class GuildSetup(commands.Cog):
             value = 0
         else:
             return await ctx.send("잘못된 값이 감지되었습니다. (`활성화`, `비활성화` 중 하나를 사용해주세요.)")
-        embed_change = discord.Embed(title=f"{tgt} 변경", description=f"정말로 이 기능을 {'활성화 할까요' if bool(value) else '비활성화 할까요'}?")
+        embed_change = discord.Embed(title=f"{tgt} 변경",
+                                     description=f"정말로 이 기능을 {'활성화 할까요' if bool(value) else '비활성화 할까요'}?")
         msg = await ctx.send(embed=embed_change)
-        await admin.update_setup(self.jbot_db_global, self.bot, ctx, msg, [embed_ok, embed_no, embed_cancel], changeable[to_change], value)
+        await admin.update_setup(self.jbot_db_global, self.bot, ctx, msg, [embed_ok, embed_no, embed_cancel],
+                                 changeable[to_change], value)
+
+    @settings.command(name="도움")
+    async def setting_help(self, ctx):
+        embed = discord.Embed(title="설정 기능 도움말", description="", color=discord.Color.from_rgb(225, 225, 225))
+        embed.add_field(name="설정 [프리픽스/대화프픽] [사용할 프리픽스]", value="봇의 프리픽스를 변경합니다.", inline=False)
+        embed.add_field(name="설정 [공지채널/환영채널/로그채널/박제채널] [사용할 채널]", value="해당 기능이 사용할 채널을 변경합니다.", inline=False)
+        embed.add_field(name="설정 [환영인사/DM인사/작별인사] [사용할 인사말]", value="해당 인사말에 사용할 인사말을 설정합니다.\n"
+                             "환영인사에 `{mention}`을 널으면 그 부분에 유저 맨션이 들어가고, DM인사/작별인사에 `{name}`을 넣으면 유저의 이름이 들어갑니다.\n"
+                             "예시: `{mention}님, 안녕하세요!` -> `@eunwoo1104님, 안녕하세요!`",
+                        inline=False)
+        embed.add_field(name="설정 뮤트역할 [사용할 역할]", value="뮤트 기능에 사용할 역할을 설정합니다.", inline=False)
+        embed.add_field(name="설정 토글 [레벨/도배방지/글로벌DB] [활성화/비활성화]", value="해당 기능의 활성화/비활성화 여부를 설정합니다.", inline=False)
+        await ctx.send(embed=embed)
 
 
 def setup(bot):

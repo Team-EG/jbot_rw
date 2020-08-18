@@ -159,6 +159,11 @@ class Utils(commands.Cog):
         embed_list.append(tgt_embed)
         await page.start_page(bot=self.bot, ctx=ctx, lists=embed_list, embed=True)
 
+    @commands.command(name="소스코드", description="제이봇의 소스코드를 보여줍니다.")
+    async def source_code(self, ctx):
+        embed = discord.Embed(title="제이봇 소스코드", description="[리라이트 버전](https://github.com/Team-EG/jbot_rw)\n[구버전](https://github.com/Team-EG/j-bot-old)", color=discord.Color.from_rgb(225, 225, 225))
+        await ctx.send(embed=embed)
+
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         emoji = payload.emoji

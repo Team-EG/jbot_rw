@@ -38,7 +38,10 @@ class Spam(commands.Cog):
         if "--NOSPAMCOUNT" in str(message.channel.topic):
             return
 
-        guild_setting = (await self.jbot_db_global.res_sql("""SELECT use_antispam FROM guild_setup WHERE guild_id=?""", (message.guild.id,)))[0]
+        try:
+            guild_setting = (await self.jbot_db_global.res_sql("""SELECT use_antispam FROM guild_setup WHERE guild_id=?""", (message.guild.id,)))[0]
+        except IndexError:
+            return
         if not bool(guild_setting["use_antispam"]):
             return
 

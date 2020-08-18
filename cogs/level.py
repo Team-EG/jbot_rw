@@ -72,7 +72,10 @@ class Level(commands.Cog):
         if "--NOLEVEL" in str(message.channel.topic):
             return
 
-        guild_setting = (await self.jbot_db_global.res_sql("""SELECT use_level FROM guild_setup WHERE guild_id=?""", (message.guild.id,)))[0]
+        try:
+            guild_setting = (await self.jbot_db_global.res_sql("""SELECT use_level FROM guild_setup WHERE guild_id=?""", (message.guild.id,)))[0]
+        except IndexError:
+            return
         if not bool(guild_setting["use_level"]):
             return
 
