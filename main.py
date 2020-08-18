@@ -81,7 +81,7 @@ async def _old_cog(ctx, choose, cog_name=None):
             updated_cogs.append(cog_file)
         embed2 = discord.Embed(title="Cog 명령어", description=f"Cog 업데이트 완료!\n`{', '.join(updated_cogs)}`", colour=discord.Color.from_rgb(225, 225, 225))
         await msg.edit(embed=embed2)
-    if choose == "load":
+    elif choose == "load":
         bot.load_extension("cogs." + cog_name)
         embed2 = discord.Embed(title="Cog 명령어", description=f"`{cog_name}` 로드 완료!", colour=discord.Color.from_rgb(225, 225, 225))
     elif choose == "reload":
