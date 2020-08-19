@@ -59,6 +59,8 @@ class Error(commands.Cog):
             embed.add_field(name="NotAdmin", value="이 서버의 관리자가 아닙니다.")
         elif isinstance(error, custom_errors.FailedFinding):
             embed.add_field(name="FailedFinding", value="DB에서 해당 값의 검색을 실패했습니다.")
+        elif isinstance(error, custom_errors.NotEnabled):
+            embed.add_field(name="NotEnabled", value=f"이 명령어를 사용하기 위해서는 `{error.not_enabled}` 기능을 사용해야 합니다.")
         else:
             logger = logging.getLogger("discord")
             logger.error(error)

@@ -17,10 +17,12 @@
 """
 import discord
 import asyncio
+import json
 from discord.ext import commands
 from modules import custom_errors
 from modules import jbot_db
 from modules import admin
+from modules import confirm
 
 loop = asyncio.get_event_loop()
 emoji_list = []
@@ -71,7 +73,8 @@ class GuildSetup(commands.Cog):
     @commands.group(name="설정", description="봇의 기능과 관련된 부분을 설정합니다.", usage="`설정 도움` 명령어를 참고해주세요.")
     async def settings(self, ctx):
         if ctx.invoked_subcommand is None:
-            guild_data = (await self.jbot_db_global.res_sql("SELECT * FROM guild_setup WHERE guild_id=?", (ctx.guild.id,)))[0]
+            guild_data = \
+            (await self.jbot_db_global.res_sql("SELECT * FROM guild_setup WHERE guild_id=?", (ctx.guild.id,)))[0]
             for x in guild_data.keys():
                 if guild_data[x] is None:
                     guild_data[x] = "없음"
@@ -112,7 +115,42 @@ class GuildSetup(commands.Cog):
             embed.add_field(name="모든 서버와 동기화된 대화 데이터베이스를 사용하나요?", value=str(guild_data["use_globaldata"]))
             embed.add_field(name="뮤트 역할", value=str(mute_role))
             embed.add_field(name="박제 채널", value=str(starboard_channel))
+            embed.add_field(name="레벨별 역할", value="`설정 레벨역할` 명령어를 참고해주세요.")
             await ctx.send(embed=embed)
+
+    @settings.group(name="레벨역할")
+    async def lvl_roles(self, ctx):
+        if ctx.invoked_subcommand is None:
+            embed = discord.Embed(title="레벨별 역할 리스트", description="역할 추가는 `설정 레벨역할 추가 [레벨] [역할]` 명령어를,\n"
+                                                                  "역할 제거는 `설정 레벨역할 제거 [레벨]` 명령어를 이용해주세요.")
+            to_give_roles = json.loads((await self.jbot_db_global.res_sql("""SELECT "to_give_roles" FROM guild_setup WHERE guild_id=?""", (ctx.guild.id,)))[0]["to_give_roles"])
+            for k, v in to_give_roles.items():
+                embed.add_field(name=f"레벨 {k}", value=str(ctx.guild.get_role(int(v)).mention))
+            await ctx.send(embed=embed)
+
+    @lvl_roles.command(name="추가")
+    async def add_lvl_roles(self, ctx, lvl, role: discord.Role):
+        embed_ok = discord.Embed(title=f"레벨 역할 추가", description="추가가 완료되었습니다.")
+        embed_no = discord.Embed(title=f"레벨 역할 추가", description="추가가 취소되었습니다.")
+        embed_cancel = discord.Embed(title=f"레벨 역할 추가", description="시간이 만료되었습니다.")
+        embed_change = discord.Embed(title=f"레벨 역할 추가", description=f"정말로 레벨 {lvl} 일때 {role.mention} 역할을 받도록 추가할까요?")
+        msg = await ctx.send(embed=embed_change)
+        to_give_roles = json.loads((await self.jbot_db_global.res_sql("""SELECT "to_give_roles" FROM guild_setup WHERE guild_id=?""", (ctx.guild.id,)))[0]["to_give_roles"])
+        to_give_roles[str(lvl)] = role.id
+        await admin.update_setup(self.jbot_db_global, self.bot, ctx, msg, [embed_ok, embed_no, embed_cancel],
+                                 "to_give_roles", json.dumps(to_give_roles))
+
+    @lvl_roles.command(name="제거")
+    async def remove_lvl_roles(self, ctx, lvl):
+        embed_ok = discord.Embed(title=f"레벨 역할 제거", description="제거가 완료되었습니다.")
+        embed_no = discord.Embed(title=f"레벨 역할 제거", description="제거가 취소되었습니다.")
+        embed_cancel = discord.Embed(title=f"레벨 역할 제거", description="시간이 만료되었습니다.")
+        embed_change = discord.Embed(title=f"레벨 역할 제거", description=f"정말로 레벨 {lvl} 역할을 제거할까요?")
+        msg = await ctx.send(embed=embed_change)
+        to_give_roles = json.loads((await self.jbot_db_global.res_sql("""SELECT "to_give_roles" FROM guild_setup WHERE guild_id=?""", (ctx.guild.id,)))[0]["to_give_roles"])
+        del to_give_roles[str(lvl)]
+        await admin.update_setup(self.jbot_db_global, self.bot, ctx, msg, [embed_ok, embed_no, embed_cancel],
+                                 "to_give_roles", json.dumps(to_give_roles))
 
     @settings.command(name="프리픽스", aliases=["프리픽스교체"])
     async def prefix_change(self, ctx, prefix: str):
@@ -290,8 +328,8 @@ class GuildSetup(commands.Cog):
         embed.add_field(name="설정 [프리픽스/대화프픽] [사용할 프리픽스]", value="봇의 프리픽스를 변경합니다.", inline=False)
         embed.add_field(name="설정 [공지채널/환영채널/로그채널/박제채널] [사용할 채널]", value="해당 기능이 사용할 채널을 변경합니다.", inline=False)
         embed.add_field(name="설정 [환영인사/DM인사/작별인사] [사용할 인사말]", value="해당 인사말에 사용할 인사말을 설정합니다.\n"
-                             "환영인사에 `{mention}`을 널으면 그 부분에 유저 맨션이 들어가고, DM인사/작별인사에 `{name}`을 넣으면 유저의 이름이 들어갑니다.\n"
-                             "예시: `{mention}님, 안녕하세요!` -> `@eunwoo1104님, 안녕하세요!`",
+                                                                    "환영인사에 `{mention}`을 널으면 그 부분에 유저 맨션이 들어가고, DM인사/작별인사에 `{name}`을 넣으면 유저의 이름이 들어갑니다.\n"
+                                                                    "예시: `{mention}님, 안녕하세요!` -> `@eunwoo1104님, 안녕하세요!`",
                         inline=False)
         embed.add_field(name="설정 뮤트역할 [사용할 역할]", value="뮤트 기능에 사용할 역할을 설정합니다.", inline=False)
         embed.add_field(name="설정 토글 [레벨/도배방지/글로벌DB] [활성화/비활성화]", value="해당 기능의 활성화/비활성화 여부를 설정합니다.", inline=False)

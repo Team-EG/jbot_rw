@@ -26,6 +26,7 @@ from discord.ext import commands
 from modules import lvl_calc
 from modules import jbot_db
 from modules import page
+from modules import custom_errors
 
 loop = asyncio.get_event_loop()
 
@@ -38,6 +39,14 @@ class Level(commands.Cog):
 
     def cog_unload(self):
         loop.run_until_complete(self.jbot_db_level.close_db())
+
+    async def cog_before_invoke(self, ctx):
+        try:
+            guild_setting = (await self.jbot_db_global.res_sql("""SELECT use_level FROM guild_setup WHERE guild_id=?""", (ctx.guild.id,)))[0]
+        except IndexError:
+            return
+        if not bool(guild_setting["use_level"]):
+            raise custom_errors.NotEnabled("레벨")
 
     @commands.command(name="레벨", description="자신의 레벨을 출력합니다.", usage="`레벨 (유저)`")
     async def level(self, ctx, user: discord.Member = None):
@@ -137,6 +146,12 @@ class Level(commands.Cog):
             return
         curr_lvl += 1
         await self.jbot_db_level.exec_sql(f"""UPDATE "{message.guild.id}_level" SET lvl=? WHERE user_id=?""", (curr_lvl, message.author.id))
+        to_give_roles = json.loads((await self.jbot_db_global.res_sql("""SELECT "to_give_roles" FROM guild_setup WHERE guild_id=?""", (message.guild.id,)))[0]["to_give_roles"])
+        if str(curr_lvl) in to_give_roles.keys():
+            tgt_role = message.guild.get_role(int(to_give_roles[str(curr_lvl)]))
+            if tgt_role is None:
+                return
+            await message.author.add_roles(tgt_role)
 
 
 def setup(bot):

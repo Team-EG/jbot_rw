@@ -42,6 +42,11 @@ class FailedFinding(commands.CommandError):
     pass
 
 
+class NotEnabled(commands.CommandError):
+    def __init__(self, not_enabled):
+        self.not_enabled = not_enabled
+
+
 class IllegalString(commands.CommandError):
     def __init__(self, banned: list = None):
         self.banned = banned
