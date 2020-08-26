@@ -34,7 +34,8 @@ cog_names = {
     "Presence": "상태",
     "Music": "뮤직",
     "GuildSetup": "설정",
-    "ServerLog": "서버 로그"
+    "ServerLog": "서버 로그",
+    "Game": "게임"
 }
 prohibited_cogs = ["Dev", "Error", "Presence", "EasterEgg"]
 

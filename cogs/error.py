@@ -19,7 +19,7 @@ import discord
 import json
 import logging
 from discord.ext import commands
-from modules import custom_errors
+from modules import custom_errors, utils
 
 
 class Error(commands.Cog):
@@ -45,7 +45,8 @@ class Error(commands.Cog):
         elif isinstance(error, commands.CheckFailure):
             embed.add_field(name="CheckFailure", value="이 서버에서는 해당 명령어를 사용할 수 없도록 설정되어있습니다.")
         elif isinstance(error, commands.CommandOnCooldown):
-            embed.add_field(name="CommandOnCooldown", value=f'쿨다운이 아직 {error.retry_after:.2f}초 남았습니다.')
+            cooldown = int(f"{error.retry_after}".split(".")[0])
+            embed.add_field(name="CommandOnCooldown", value=f'쿨다운이 아직 {utils.parse_second(cooldown)} 남았습니다.')
         elif isinstance(error, commands.MissingRequiredArgument):
             embed.add_field(name="MissingRequiredArgument", value=f"누락된 필수 항목이 있습니다. (`{error.param.name}`)")
         elif isinstance(error, custom_errors.NotWhitelisted):
@@ -61,6 +62,8 @@ class Error(commands.Cog):
             embed.add_field(name="FailedFinding", value="DB에서 해당 값의 검색을 실패했습니다.")
         elif isinstance(error, custom_errors.NotEnabled):
             embed.add_field(name="NotEnabled", value=f"이 명령어를 사용하기 위해서는 `{error.not_enabled}` 기능을 사용해야 합니다.")
+        elif isinstance(error, custom_errors.IgnoreThis):
+            return
         else:
             logger = logging.getLogger("discord")
             logger.error(error)

@@ -130,7 +130,7 @@ class Music(commands.Cog):
     async def play(self, ctx, *, url):
         msg = await ctx.send(
             f"잠시만 기다려주세요...\n팁: 만약에 너무 오랫동안 재생이 안된다면 `강제연결해제` (`{ctx.prefix}강제연결해제`) 명령어를 사용해주세요.")
-        embed = discord.Embed(title="유튜브 음악 재생", color=discord.Colour.from_rgb(255, 0, 0))
+        embed = discord.Embed(title="유튜브 음악 재생", color=discord.Colour.from_rgb(255, 0, 0), timestamp=ctx.message.created_at)
         user_voice = ctx.message.author.voice
         if user_voice is None:
             return await msg.edit(content=f"{ctx.author.mention} 먼저 음성 채널에 들어와주세요.")
@@ -303,7 +303,7 @@ class Music(commands.Cog):
         queue_list = await get_queue(ctx.guild.id)
         if bool(queue_list) is False:
             return await ctx.send("현재 재생중이 아닙니다.")
-        temp_ql_embed = discord.Embed(title="뮤직 대기 리스트", color=discord.Colour.from_rgb(225, 225, 225))
+        temp_ql_embed = discord.Embed(title="뮤직 대기 리스트", color=discord.Colour.from_rgb(225, 225, 225), timestamp=ctx.message.created_at)
         temp_ql_embed.set_author(name=ctx.guild.name, icon_url=ctx.guild.icon_url)
         playing_vid_url = queue_list["playing"]["vid_url"]
         playing_vid_title = queue_list["playing"]["vid_title"]
