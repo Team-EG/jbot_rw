@@ -72,14 +72,15 @@ class Utils(commands.Cog):
         servers = len(self.bot.guilds)
         users = len(list(self.bot.get_all_members()))
         p = psutil.Process(os.getpid())
+        uptime_sys = datetime.datetime.now() - datetime.datetime.fromtimestamp(psutil.boot_time())
         uptime_bot = str(datetime.datetime.now() - datetime.datetime.fromtimestamp(p.create_time()))
         uptime_bot = uptime_bot.split(".")[0]
-        embed = discord.Embed(title="제이봇 정보", description="Developed by [eunwoo1104](https://discord.gg/nJuW3Xs) (Originally by Team EG)", colour=discord.Color.from_rgb(225, 225, 225))
+        embed = discord.Embed(title="제이봇 정보", description="Developed by [Team EG](https://discord.gg/gqJBhar)", colour=discord.Color.from_rgb(225, 225, 225))
         embed.add_field(name="파이썬 버전", value=platform.python_version(), inline=False)
         embed.add_field(name="discord.py 버전", value=discord.__version__, inline=False)
         embed.add_field(name="들어와 있는 서버수", value=str(servers) + "개", inline=False)
         embed.add_field(name="같이 있는 유저수", value=str(users) + "명", inline=False)
-        embed.add_field(name="업타임", value=uptime_bot, inline=False)
+        embed.add_field(name="업타임", value=f"서버: {uptime_sys}\n봇: {uptime_bot}", inline=False)
         embed.set_thumbnail(url=self.bot.user.avatar_url)
         await ctx.send(embed=embed)
 
