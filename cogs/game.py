@@ -120,7 +120,7 @@ class Game(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(name="알바", description="알바를 통해 돈을 얻습니다.")
-    @commands.cooldown(1, 60*60*24, commands.BucketType.user)
+    @commands.cooldown(1, 60*10, commands.BucketType.user)
     async def work(self, ctx):
         money = (await self.jbot_db_global.res_sql("""SELECT money FROM game WHERE user_id=?""", (ctx.author.id,)))[0]["money"]
         to_add = random.randint(1000, 8590)
