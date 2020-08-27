@@ -280,7 +280,7 @@ class Game(commands.Cog):
         await msg.edit(embed=finish_embed)
 
     @commands.command(name="투자", description="투자를 해서 돈을 얻거나 잃습니다.", usage="`투자 [돈 액수]`", aliases=["가즈아"])
-    @commands.cooldown(1, 60, commands.BucketType.user)
+    @commands.cooldown(1, 30, commands.BucketType.user)
     async def gambling(self, ctx, to_lose_money: int):
         money = (await self.jbot_db_global.res_sql("""SELECT money FROM game WHERE user_id=?""", (ctx.author.id,)))[0]["money"]
         if to_lose_money > money:

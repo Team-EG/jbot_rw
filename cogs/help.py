@@ -18,6 +18,8 @@
 import discord
 import json
 import koreanbots
+import os
+import asyncio
 from discord.ext import commands
 from modules import page
 
@@ -47,14 +49,19 @@ class Help(commands.Cog):
             bot_settings = json.load(f)
             token = bot_settings["koreanbots_token"]
         self.client = koreanbots.Client(self.bot, token, postCount=False)
+        self.sent_users = []
 
     async def cog_before_invoke(self, ctx):
+        if ctx.author.id in self.sent_users:
+            return
         try:
             res = await self.client.getVote(ctx.author.id)
             if res.response["voted"]:
                 return
         except koreanbots.NotFound:
             pass
+        finally:
+            self.sent_users.append(ctx.author.id)
         embed = discord.Embed(title="잠시만요!",
                               description="아직 코리안봇에서 제이봇에게 하트를 누르지 않으셨네요...\n지금 [여기를 눌러서](https://koreanbots.dev/bots/622710354836717580) 코리안봇에 투표해주세요!",
                               color=discord.Color.red())
@@ -63,7 +70,11 @@ class Help(commands.Cog):
     @commands.group(name="도움", description="봇의 도움말 명령어를 출력합니다.", aliases=["도움말", "help"])
     async def help(self, ctx):
         if ctx.invoked_subcommand is None:
-            base_embed = discord.Embed(title="명령어 리스트", description="한눈에 보는 명령어 리스트\n자세한 명령어 정보는 `도움 카테고리 [카테고리 이름]` 또는 `도움 검색 [명령어 이름]`을 참고해주세요.", color=discord.Color.from_rgb(225, 225, 225))
+            base_embed = discord.Embed(title="명령어 리스트",
+                                       description="한눈에 보는 명령어 리스트\n"
+                                                   "자세한 명령어 정보는 `도움 카테고리 [카테고리 이름]` 또는 `도움 검색 [명령어 이름]`을 참고해주세요.\n"
+                                                   "봇 가이드는 `도움 가이드` 명령어를 참고해주세요.",
+                                       color=discord.Color.from_rgb(225, 225, 225))
             cogs = [(x, y.get_commands()) for x, y in self.bot.cogs.items()]
             for x in cogs:
                 if x[0] in prohibited_cogs:
@@ -108,6 +119,84 @@ class Help(commands.Cog):
                     embed.add_field(name="에일리어스", value=', '.join(n.aliases) if bool(n.aliases) else "없음", inline=False)
                     return await ctx.send(embed=embed)
         await ctx.send(f"`{cmd_name}`(은)는 없는 명령어입니다.")
+
+    @help.command(name="가이드")
+    async def help_guide(self, ctx):
+        up = "⬆"
+        down = "⬇"
+        load = "⏺"
+        stop = "⏹"
+        emoji_list = [up, down, load, stop]
+        select_embed = discord.Embed(title="사용 가능한 가이드 리스트", description="보고 싶으신 가이드를 선택해주세요.", color=discord.Color.from_rgb(225, 225, 225))
+        msg = await ctx.send("잠시만 기다려주세요...")
+        for x in emoji_list:
+            await msg.add_reaction(x)
+        available_guides = os.listdir("help")
+        selected = available_guides[0]
+        selected_num = 0
+
+        def check(reaction, user):
+            return user == ctx.author and str(reaction) in emoji_list and reaction.message.id == msg.id
+
+        global reaction
+        while True:
+            tgt_embed = select_embed.copy()
+            init_num = 1
+            for k in available_guides:
+                if k == selected:
+                    k = "▶" + k
+                tgt_embed.add_field(name=f"가이드 {init_num}", value=k.replace('_', ' '), inline=False)
+                init_num += 1
+            await msg.edit(content=None, embed=tgt_embed)
+            try:
+                reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=60)
+            except asyncio.TimeoutError:
+                await msg.edit(content="시간이 만료되었습니다.", embed=None)
+                try:
+                    await msg.clear_reactions()
+                except discord.Forbidden:
+                    for e in emoji_list:
+                        await msg.remove_reaction(e, msg.author)
+                return
+
+            if str(reaction) == down:
+                if selected_num + 1 == len(available_guides):
+                    selected_num = 0
+                    selected = available_guides[0]
+                else:
+                    selected_num += 1
+                    selected = available_guides[selected_num]
+            elif str(reaction) == up:
+                if selected_num == 0:
+                    selected_num = len(available_guides)
+                    selected = available_guides[-1][0]
+                else:
+                    selected_num -= 1
+                    selected = available_guides[selected_num]
+            elif str(reaction) == stop:
+                await msg.clear_reactions()
+                return
+            elif str(reaction) == load:
+                await msg.clear_reactions()
+                await msg.edit(content="가이드를 불러오고 있습니다. 잠시만 기다려주세요...", embed=None)
+                break
+
+        guide_name = selected
+        embed_list = []
+        base_embed = discord.Embed(title=f"{guide_name.replace('_', ' ')} 가이드", color=discord.Color.from_rgb(225, 225, 225))
+        guide_dir = f"help/{guide_name}"
+        count = 0
+        guide_pages = [x for x in os.listdir(guide_dir) if x.endswith(".txt")]
+        for x in guide_pages:
+            count += 1
+            with open(guide_dir + "/" + x, "r", encoding="UTF-8") as f:
+                content = f.read()
+            tgt_embed = base_embed.copy()
+            tgt_embed.description = content
+            tgt_embed.set_footer(text=f"페이지 {count}/{len(guide_pages)}")
+            embed_list.append(tgt_embed)
+        await msg.delete()
+        await page.start_page(self.bot, ctx=ctx, lists=embed_list, embed=True)
 
 
 def setup(bot):

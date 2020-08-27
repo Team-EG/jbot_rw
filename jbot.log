@@ -1,8 +1,5 @@
-2020-08-25 16:18:59,396:INFO:discord: DB Loaded.
-2020-08-25 16:19:00,130:INFO:discord.client: logging in using static token
-2020-08-25 16:19:01,096:INFO:discord.gateway: Shard ID 0 has sent the IDENTIFY payload.
-2020-08-25 16:19:01,398:INFO:discord.gateway: Shard ID 0 has connected to Gateway: ["gateway-prd-main-ljf2",{"micros":102768,"calls":["discord-sessions-prd-2-12",{"micros":98426,"calls":["start_session",{"micros":62985,"calls":["api-prd-main-qx0s",{"micros":52181,"calls":["get_user",{"micros":6579},"add_authorized_ip",{"micros":1873},"get_guilds",{"micros":1797},"coros_wait",{"micros":1}]}]},"guilds_connect",{"micros":6,"calls":[]},"presence_connect",{"micros":14931,"calls":[]}]}]}] (Session ID: fadecd6e754b2a9c860a4743e71a0245).
-2020-08-25 16:19:03,442:INFO:discord: Bot online.
-2020-08-25 20:02:51,138:INFO:discord.shard: Got a request to RESUME the websocket at Shard ID 0.
-2020-08-25 20:02:51,661:INFO:discord.gateway: Shard ID 0 has sent the RESUME payload.
-2020-08-25 20:02:51,871:INFO:discord.gateway: Shard ID 0 has successfully RESUMED session fadecd6e754b2a9c860a4743e71a0245 under trace ["gateway-prd-main-fcg6",{"micros":1432,"calls":["discord-sessions-prd-2-12",{"micros":32}]}].
+2020-08-27 23:18:13,707:INFO:discord: DB Loaded.
+2020-08-27 23:18:14,513:INFO:discord.client: logging in using static token
+2020-08-27 23:18:15,333:INFO:discord.gateway: Shard ID 0 has sent the IDENTIFY payload.
+2020-08-27 23:18:15,578:INFO:discord.gateway: Shard ID 0 has connected to Gateway: ["gateway-prd-main-9f74",{"micros":47179,"calls":["discord-sessions-prd-2-5",{"micros":44542,"calls":["start_session",{"micros":32235,"calls":["api-prd-main-3qw9",{"micros":29578,"calls":["get_user",{"micros":2557},"add_authorized_ip",{"micros":1520},"get_guilds",{"micros":1626},"coros_wait",{"micros":1}]}]},"guilds_connect",{"micros":8,"calls":[]},"presence_connect",{"micros":7044,"calls":[]}]}]}] (Session ID: b4c39e593c77c27d4a674ab41338353e).
+2020-08-27 23:18:17,601:INFO:discord: Bot online.
