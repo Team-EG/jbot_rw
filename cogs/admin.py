@@ -34,6 +34,12 @@ class Admin(commands.Cog):
         loop.run_until_complete(self.jbot_db_warns.close_db())
 
     async def cog_check(self, ctx):
+        if ctx.invoked_with in ["추방", "경고", "경고삭제", "정리", "뮤트", "언뮤트"]:
+            if ctx.author.guild_permissions.kick_members:
+                return True
+        if ctx.invoked_with in ["차단"]:
+            if ctx.author.guild_permissions.ban_members:
+                return True
         if ctx.author.guild_permissions.administrator or ctx.author == ctx.guild.owner:
             return True
         raise custom_errors.NotAdmin

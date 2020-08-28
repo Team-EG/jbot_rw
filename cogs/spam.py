@@ -72,7 +72,7 @@ class Spam(commands.Cog):
         try:
             last_msg = int(time_data[str(message.author.id)]["time"])
             calc_time = curr_time - last_msg
-            if calc_time > 20: # 20초에 10번 -> 20번
+            if calc_time > 20: # 20초에 10번 -> 15번
                 time_data[str(message.author.id)]["time"] = curr_time
                 time_data[str(message.author.id)]["spam_count"] = 0
                 with open(f"temp/{message.guild.id}_spam.json", "w") as f:
