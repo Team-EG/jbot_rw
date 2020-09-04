@@ -24,6 +24,7 @@ import nest_asyncio
 from discord.ext import commands
 from modules import jbot_db
 from modules import custom_errors
+from modules.cilent import CustomClient
 
 nest_asyncio.apply()
 loop = asyncio.get_event_loop()
@@ -40,9 +41,6 @@ for fl in temp_file_list:
     os.remove("temp/"+fl)
 print("Done!")
 
-jbot_db_global = jbot_db.JBotDB("jbot_db_global")
-logger.info("DB Loaded.")
-
 
 def get_bot_settings() -> dict:
     with open('bot_settings.json', 'r') as f:
@@ -54,6 +52,7 @@ if get_bot_settings()["debug"]:
 
 
 async def get_prefix(bot, message):
+    jbot_db_global = bot.jbot_db_global
     data = (await jbot_db_global.res_sql("""SELECT prefix FROM guild_setup WHERE guild_id=?""", (message.guild.id,)))
     try:
         guild_prefix = data[0]["prefix"]
@@ -64,7 +63,7 @@ async def get_prefix(bot, message):
     return commands.when_mentioned_or(*['제이봇 ', 'j!', guild_prefix])(bot, message)
 
 
-bot = commands.AutoShardedBot(command_prefix=get_prefix, help_command=None)
+bot = CustomClient(command_prefix=get_prefix, help_command=None)
 
 
 async def is_whitelisted(ctx):
@@ -138,7 +137,7 @@ async def _new_cog(ctx):
     selected_num = 0
 
     def check(reaction, user):
-        return user == ctx.author and str(reaction) in emoji_list
+        return user == ctx.author and str(reaction) in emoji_list and reaction.message.id == msg.id
 
     while True:
         tgt_embed = base_embed.copy()
@@ -196,4 +195,4 @@ async def _new_cog(ctx):
 
 [bot.load_extension(f"cogs.{x.replace('.py', '')}") for x in os.listdir("./cogs") if x.endswith('.py')]
 
-bot.run(get_bot_settings()["canary_token"])
+bot.run_bot(canary=True)

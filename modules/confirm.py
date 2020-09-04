@@ -1,9 +1,10 @@
 import discord
 import asyncio
+from .cilent import CustomClient
 from discord.ext import commands
 
 
-async def confirm(bot: commands.Bot, ctx: commands.Context, msg: discord.Message, time: int = 30):
+async def confirm(bot: CustomClient, ctx: commands.Context, msg: discord.Message, time: int = 30):
     """
     해당 액션을 할지 확인하는 함수입니다.
     :param ctx: author

@@ -19,14 +19,18 @@ import discord
 import random
 import asyncio
 import time
+import aiohttp
+import json
+import datetime
 from discord.ext import commands
-from modules import jbot_db, confirm, custom_errors, utils
+from modules import confirm, custom_errors, utils, page
+from modules.cilent import CustomClient
 
 
 class Game(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: CustomClient):
         self.bot = bot
-        self.jbot_db_global = jbot_db.JBotDB("jbot_db_global")
+        self.jbot_db_global = bot.jbot_db_global
 
     async def cog_check(self, ctx: commands.Context):
         if ctx.invoked_with in ["계정생성", "계정생선"]:
@@ -133,6 +137,7 @@ class Game(commands.Cog):
     async def account_view(self, ctx, user: discord.User = None):
         user = user if user is not None else ctx.author
         acc = (await self.jbot_db_global.res_sql("""SELECT * FROM game WHERE user_id=?""", (user.id,)))[0]
+        stock_data = await self.jbot_db_global.res_sql("""SELECT * FROM stock""")
         description = """**수치 관련 설명**
 `학업`이 일정 크기 이상일 경우 `학원강사`, `과외쌤` 일을 할 수 있습니다. 학업을 올리기 위해서는 일정 금액을 지불하고 학원을 다니면 됩니다.
 `힘`이 일정 크기 이상일 경우 `막노동`이 가능합니다. 힘을 키우기 위해서는 헬스장에서 일정 금액을 지불하고 헬스를 하면 됩니다.
@@ -147,7 +152,11 @@ class Game(commands.Cog):
         embed.add_field(name="갚아야 하는 대출",
                         value=f"금액: `{acc['borrowed_money']}`원\n남은 시간: {utils.parse_second(round(float(acc['borrowed_deadline'])-time.time()))}" if bool(acc['borrowed_deadline']) else "없음",
                         inline=False)
-        await ctx.send(embed=embed)
+        stock_embed = discord.Embed(title=f"{user.name}님의 주식 정보", color=discord.Color.from_rgb(225, 225, 225), timestamp=ctx.message.created_at)
+        for k, v in json.loads(acc["stock"]).items():
+            tgt_stock = [x for x in stock_data if x["name"] == v["name"]][0]
+            stock_embed.add_field(name=v["name"]+f" (코드: {k})", value=f"개수: {v['amount']}개\n수익: {(tgt_stock['curr_price']*v['amount'])-v['bought_price']}원", inline=False)
+        await page.start_page(self.bot, ctx, lists=[embed, stock_embed], embed=True)
 
     @commands.command(name="대출", description="은행에서 대출을 받습니다.", usage="`대출 [돈 액수]`")
     async def borrow_money(self, ctx, amount: int):
@@ -220,14 +229,22 @@ class Game(commands.Cog):
             return await ctx.send("돈이 부족합니다.")
         money -= selected[0]
 
-        working_embed = discord.Embed(title="헬스장에서 운동하는중", description="잠시만 기다려주세요...",)
+        working_embed = discord.Embed(title="헬스장에서 운동하는중", description="잠시만 기다려주세요...", )
         await msg.edit(embed=working_embed)
         await asyncio.sleep(5)
+        fail_rate = random.randint(1, 100)
         selected_num = random.randint(*selected[1])
-        power += selected_num
+        if fail_rate < 30:
+            power -= selected_num
+            finish_embed = discord.Embed(title="운동 실패",
+                                         description=f"당신을 헬스장에서 운동을 너무 무리하게 하다가 근육이 손상되었습니다."
+                                                     f"힘이 `{selected_num}` 만큼 감소했습니다. (현재 힘: `{power}` | 현재 돈: `{money}`원)")
+        else:
+            power += selected_num
+            finish_embed = discord.Embed(title="운동 완료",
+                                         description=f"힘이 `{selected_num}` 만큼 증가했습니다! (현재 힘: `{power}` | 현재 돈: `{money}`원)")
 
         await self.jbot_db_global.exec_sql("""UPDATE game SET money=?, power=? WHERE user_id=?""", (money, power, ctx.author.id))
-        finish_embed = discord.Embed(title="운동 완료", description=f"힘이 `{selected_num}` 만큼 증가했습니다! (현재 힘: `{power}` | 현재 돈: `{money}`원)")
         await msg.edit(embed=finish_embed)
 
     @commands.command(name="학원", description="학원에서 공부를 합니다.")
@@ -270,13 +287,21 @@ class Game(commands.Cog):
         working_embed = discord.Embed(title="학원에서 공부하는중", description="잠시만 기다려주세요...", )
         await msg.edit(embed=working_embed)
         await asyncio.sleep(5)
+
+        fail_rate = random.randint(1, 100)
         selected_num = random.randint(*selected[1])
-        intelligent += selected_num
+        if fail_rate < 30:
+            intelligent -= selected
+            finish_embed = discord.Embed(title="공부 실패",
+                                         description=f"당신은 수업중에 너무 졸려서 수업중 졸다가 선생님께 걸려서 학원에서 퇴학되었습니다."
+                                                     f"학업이 `{selected_num}` 만큼 감소했습니다. (현재 학업: `{intelligent}` | 현재 돈: `{money}`원)")
+        else:
+            intelligent += selected_num
+            finish_embed = discord.Embed(title="공부 완료",
+                                         description=f"학업이 `{selected_num}` 만큼 증가했습니다! (현재 학업: `{intelligent}` | 현재 돈: `{money}`원)")
 
         await self.jbot_db_global.exec_sql("""UPDATE game SET money=?, intelligent=? WHERE user_id=?""",
                                            (money, intelligent, ctx.author.id))
-        finish_embed = discord.Embed(title="공부 완료",
-                                     description=f"학업이 `{selected_num}` 만큼 증가했습니다! (현재 학업: `{intelligent}` | 현재 돈: `{money}`원)")
         await msg.edit(embed=finish_embed)
 
     @commands.command(name="투자", description="투자를 해서 돈을 얻거나 잃습니다.", usage="`투자 [돈 액수]`", aliases=["가즈아"])
@@ -332,18 +357,110 @@ class Game(commands.Cog):
                                    description=f"이런! 비겼네요... ({user_choice} vs {bot_choice})",
                                    color=discord.Color.from_rgb(225, 225, 225))
 
-        async def _rpc(player, bot):
-            if (player == rpc[0] and bot == rpc[2]) or (player == rpc[1] and bot == rpc[0]) or (player == rpc[2] and bot == rpc[1]):
-                await self.jbot_db_global.exec_sql("""UPDATE game SET money=? WHERE user_id=?""", (money+amount, ctx.author.id))
-                return await msg.edit(embed=won_embed)
-            elif player == bot:
-                return await msg.edit(embed=draw_embed)
-            elif (player == rpc[0] and bot == rpc[1]) or (player == rpc[1] and bot == rpc[2]) or (player == rpc[2] and bot == rpc[0]):
-                await self.jbot_db_global.exec_sql("""UPDATE game SET money=? WHERE user_id=?""", (money-amount, ctx.author.id))
-                return await msg.edit(embed=lose_embed)
+        if (user_choice == rpc[0] and bot_choice == rpc[2]) or (user_choice == rpc[1] and bot_choice == rpc[0]) or (user_choice == rpc[2] and bot_choice == rpc[1]):
+            await self.jbot_db_global.exec_sql("""UPDATE game SET money=? WHERE user_id=?""", (money + amount, ctx.author.id))
+            return await msg.edit(embed=won_embed)
+        elif user_choice == bot_choice:
+            return await msg.edit(embed=draw_embed)
+        elif (user_choice == rpc[0] and bot_choice == rpc[1]) or (user_choice == rpc[1] and bot_choice == rpc[2]) or (user_choice == rpc[2] and bot_choice == rpc[0]):
+            await self.jbot_db_global.exec_sql("""UPDATE game SET money=? WHERE user_id=?""", (money - amount, ctx.author.id))
+            return await msg.edit(embed=lose_embed)
 
-        await _rpc(user_choice, bot_choice)
+    @commands.group(name="주식", description="주식 관련 명령어입니다.", usage="`주식 도움` 명령어를 참고해주세요.")
+    async def stock(self, ctx):
+        if ctx.invoked_subcommand is None:
+            stocks = await self.jbot_db_global.res_sql("""SELECT * FROM stock""")
+            embed = discord.Embed(title="주식 리스트", description="주식 관련 명령어는 `제이봇 주식 도움` 명령어를 참고해주세요.",
+                                  color=discord.Color.from_rgb(225, 225, 225), timestamp=datetime.datetime.fromtimestamp(self.bot.last_stock_change, tz=datetime.timezone(datetime.timedelta(hours=9))))
+            current_time = round(time.time())
+            embed.set_footer(text=f"마지막 업데이트: {utils.parse_second(current_time-self.bot.last_stock_change)} 전")
+            for x in stocks:
+                history = [int(a) for a in x["history"].split(',')]
+                price_changed = history[-1] - history[-2]
+                text = None
+                if price_changed > 0:
+                    text = f"+{price_changed}원"
+                elif price_changed == 0:
+                    text = f"가격 변동 없음"
+                elif price_changed < 0:
+                    text = f"-{abs(price_changed)}원"
+                embed.add_field(name=x["name"], value=f"{x['curr_price']}원 ({text})", inline=False)
+            await ctx.send(embed=embed)
+
+    @stock.command(name="도움")
+    async def stock_help(self, ctx):
+        embed = discord.Embed(title="주식 명령어 도움말", color=discord.Color.from_rgb(225, 225, 225))
+        embed.add_field(name=f"주식", value=f"현재 주식 차트를 보여줍니다. `주식 차트` 명령어로도 가능합니다.", inline=False)
+        embed.add_field(name=f"주식 그래프 (주식 이름)", value=f"해당 주식의 최근 가격 그래프를 봅니다. 이름을 입력하지 않으면 모든 주식을 보여줍니다.", inline=False)
+        embed.add_field(name=f"주식 구매 [주식 이름 (키워드)] [개수]", value=f"해당 주식을 해당 개수만큼 구매합니다.\n예시: `제이봇 주식 구매 Team 10` -> Team EG 주식을 10개 구매합니다.", inline=False)
+        embed.add_field(name=f"주식 판매 [구매 코드]", value=f"해당 소유 주식을 판매합니다. 구매 코드는 `지갑` 명령어에서 2번째 페이지를 통해 확인 가능합니다.", inline=False)
+        await ctx.send(embed=embed)
+
+    @stock.command(name="차트")
+    async def stock_chart(self, ctx):
+        await self.stock.__call__(ctx)
+
+    @stock.command(name="그래프")
+    @commands.cooldown(15, 1, commands.BucketType.user)
+    async def stock_graph(self, ctx, name=None):
+        data = await self.jbot_db_global.res_sql("""SELECT name, history FROM stock""")
+        if name is not None:
+            data = [x for x in data if name in x["name"]]
+        header = {"Content-Type": "application/json"}
+        body = {"stock_list": data}
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url="http://jebserver.iptime.org:8901/request_image", headers=header, json=body) as resp:
+                image_url = await resp.text()
+
+        embed = discord.Embed(title="주식 그래프", timestamp=ctx.message.created_at, color=discord.Color.from_rgb(225, 225, 225))
+        embed.description = "현재 서버 글꼴 문제로 한글이 비정상적으로 출력되는 문제가 있습니다."
+        embed.set_image(url=str(image_url.replace('"', '')))
+        embed.set_footer(text=ctx.author.name, icon_url=ctx.author.avatar_url)
+        await ctx.send(embed=embed)
+
+    @stock.command(name="구매", aliases=["매수"])
+    async def stock_buy(self, ctx, name, amount: int):
+        user_data = (await self.jbot_db_global.res_sql("""SELECT money, stock FROM game WHERE user_id=?""", (ctx.author.id,)))[0]
+        current_time = round(time.time())
+        stock_data = json.loads(user_data["stock"])
+        tgt_stock = [x for x in await self.jbot_db_global.res_sql("""SELECT name, curr_price FROM stock""") if name in x["name"]][0]
+        money_req = amount * tgt_stock["curr_price"]
+        if money_req > user_data["money"]:
+            return await ctx.send("돈이 부족합니다.")
+        embed = discord.Embed(title="주식 구매", description=f"정말로 주식을 {amount}개 구매할까요? 가격은 `{money_req}`원 입니다.", color=discord.Color.from_rgb(225, 225, 225))
+        msg = await ctx.send(embed=embed)
+        res = await confirm.confirm(self.bot, ctx=ctx, msg=msg)
+        if not res:
+            cancel_embed = discord.Embed(title="주식 구매", description="주식 구매를 취소했습니다.", color=discord.Color.red())
+            return await msg.edit(embed=cancel_embed)
+        stock_data[str(current_time)] = {"name": tgt_stock["name"], "amount": amount, "bought_price": money_req}
+        stock_data = json.dumps(stock_data)
+        await self.jbot_db_global.exec_sql("""UPDATE game SET money=?, stock=? WHERE user_id=?""", (user_data["money"]-money_req, stock_data, ctx.author.id))
+        ok_embed = discord.Embed(title="주식 구매 완료", description=f"성공적으로 `{tgt_stock['name']}` 주식을 {amount}개 구매했습니다!", color=discord.Color.green())
+        await msg.edit(embed=ok_embed)
+
+    @stock.command(name="판매", aliases=["매도"])
+    async def stock_sell(self, ctx, code: int):
+        user_data = (await self.jbot_db_global.res_sql("""SELECT money, stock FROM game WHERE user_id=?""", (ctx.author.id,)))[0]
+        stock_data = json.loads(user_data["stock"])
+        if str(code) not in stock_data.keys():
+            return await ctx.send("해당 코드를 찾을 수 없습니다.")
+        to_sell = stock_data[str(code)]
+        tgt_stock = [x for x in await self.jbot_db_global.res_sql("""SELECT name, curr_price FROM stock""") if to_sell["name"] in x["name"]][0]
+        income = int(to_sell["amount"]) * int(tgt_stock["curr_price"])
+        conf_embed = discord.Embed(title="주식 판매", description=f"정말로 {to_sell['name']} 주식을 {to_sell['amount']}개 판매할까요? (판매 금액: {income}원)", color=discord.Color.from_rgb(225, 225, 225))
+        msg = await ctx.send(embed=conf_embed)
+        res = await confirm.confirm(self.bot, ctx=ctx, msg=msg)
+        if not res:
+            cancel_embed = discord.Embed(title="주식 판매", description="주식 판매를 취소했습니다.", color=discord.Color.red())
+            return await msg.edit(embed=cancel_embed)
+        del stock_data[str(code)]
+        stock_data = json.dumps(stock_data)
+        await self.jbot_db_global.exec_sql("""UPDATE game SET money=?, stock=? WHERE user_id=?""", (user_data["money"]+income, stock_data, ctx.author.id))
+        ok_embed = discord.Embed(title="주식 판매 완료", description=f"주식 판매가 완료되었습니다.",
+                                 color=discord.Color.green())
+        await msg.edit(embed=ok_embed)
 
 
-def setup(bot):
+def setup(bot: CustomClient):
     bot.add_cog(Game(bot))

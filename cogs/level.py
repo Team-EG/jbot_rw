@@ -24,21 +24,19 @@ import json
 import asyncio
 from discord.ext import commands
 from modules import lvl_calc
-from modules import jbot_db
 from modules import page
 from modules import custom_errors
+from modules import jbot_db
+from modules.cilent import CustomClient
 
 loop = asyncio.get_event_loop()
 
 
 class Level(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: CustomClient):
         self.bot = bot
-        self.jbot_db_global = jbot_db.JBotDB("jbot_db_global")
-        self.jbot_db_level = jbot_db.JBotDB("jbot_db_level")
-
-    def cog_unload(self):
-        loop.run_until_complete(self.jbot_db_level.close_db())
+        self.jbot_db_global = bot.jbot_db_global
+        self.jbot_db_level = bot.jbot_db_level
 
     async def cog_before_invoke(self, ctx):
         try:
@@ -146,6 +144,7 @@ class Level(commands.Cog):
             return
         curr_lvl += 1
         await self.jbot_db_level.exec_sql(f"""UPDATE "{message.guild.id}_level" SET lvl=? WHERE user_id=?""", (curr_lvl, message.author.id))
+        await message.channel.send(f"{message.author.mention}님이 {curr_lvl}레벨로 레벨업 하셨습니다!")
         to_give_roles = json.loads((await self.jbot_db_global.res_sql("""SELECT "to_give_roles" FROM guild_setup WHERE guild_id=?""", (message.guild.id,)))[0]["to_give_roles"])
         if str(curr_lvl) in to_give_roles.keys():
             tgt_role = message.guild.get_role(int(to_give_roles[str(curr_lvl)]))

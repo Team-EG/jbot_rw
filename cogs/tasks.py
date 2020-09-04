@@ -18,20 +18,27 @@
 import discord
 import asyncio
 import websockets
+import random
+import time
 from discord.ext import commands
 from discord.ext import tasks
+from modules.cilent import CustomClient
 
 
-class Presence(commands.Cog):
-    def __init__(self, bot):
+class Tasks(commands.Cog):
+    def __init__(self, bot: CustomClient):
         self.bot = bot
+        self.jbot_db_global = bot.jbot_db_global
         self.presence_cycle.start()
+        self.stock_price.start()
 
     def cog_unload(self):
         self.presence_cycle.cancel()
+        self.stock_price.cancel()
 
     @tasks.loop()
     async def presence_cycle(self):
+        # 팁: 이렇게 하면 오류로 무한루프가 멈춰도 다시 작동합니다
         while True:
             act_list = ["'제이봇 도움'이라고 말해보세요!",
                         f"{len(self.bot.guilds)}개 서버에서 작동",
@@ -46,10 +53,41 @@ class Presence(commands.Cog):
                     await self.bot.change_presence(activity=discord.Game(str(x)))
                     await asyncio.sleep(5)
 
+    @tasks.loop()
+    async def stock_price(self):
+        while True:
+            stock = await self.jbot_db_global.res_sql("""SELECT * FROM stock""")
+            for x in stock:
+                if len(stock) == 0:
+                    break
+                random_price = random.randint(0, 100)
+                random_percentage = random.randint(1, 100)
+                score = x["score"]
+                curr_price = x["curr_price"]
+                curr_history = x["history"].split(",")
+                if random_percentage < score: # 가격 하락
+                    curr_price -= random_price
+                    score -= random.randint(1, 5)
+                    curr_history.append(str(curr_price))
+                else: # 가격 상승
+                    curr_price += random_price
+                    score += random.randint(1, 5)
+                    curr_history.append(str(curr_price))
+                if len(curr_history) > 20:
+                    del curr_history[0]
+                await self.jbot_db_global.exec_sql("""UPDATE stock SET curr_price=?, score=?, history=? WHERE name=?""",
+                                                   (curr_price, score, ','.join(curr_history), x["name"]))
+            self.bot.last_stock_change = round(time.time())
+            await asyncio.sleep(60*5)
+
     @presence_cycle.before_loop
+    async def before_loop_start(self):
+        await self.bot.wait_until_ready()
+
+    @stock_price.before_loop
     async def before_loop_start(self):
         await self.bot.wait_until_ready()
 
 
 def setup(bot):
-    bot.add_cog(Presence(bot))
+    bot.add_cog(Tasks(bot))

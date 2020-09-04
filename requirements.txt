@@ -1,7 +1,5 @@
 discord.py[voice]
-pynacl
 youtube-dl
-beautifulsoup4
 aiohttp
 aiosqlite
 psutil

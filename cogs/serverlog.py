@@ -17,13 +17,14 @@
 """
 import discord
 from discord.ext import commands
-from modules import admin, jbot_db
+from modules import admin
+from modules.cilent import CustomClient
 
 
 class ServerLog(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: CustomClient):
         self.bot = bot
-        self.jbot_db_global = jbot_db.JBotDB("jbot_db_global")
+        self.jbot_db_global = bot.jbot_db_global
 
     @commands.Cog.listener()
     async def on_message_delete(self, message):

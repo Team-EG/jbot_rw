@@ -24,21 +24,18 @@ import asyncio
 import random
 from discord.ext import commands
 from modules import custom_errors
-from modules import jbot_db
+from modules.cilent import CustomClient
 from modules import confirm
 
 loop = asyncio.get_event_loop()
 
 
 class Dev(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: CustomClient):
         with open("bot_settings.json", "r") as f:
             self.bot_settings = json.load(f)
         self.bot = bot
-        self.jbot_db_global = jbot_db.JBotDB("jbot_db_global")
-
-    def cog_unload(self):
-        loop.run_until_complete(self.jbot_db_global.close_db())
+        self.jbot_db_global = bot.jbot_db_global
 
     async def cog_check(self, ctx):
         if ctx.author.id not in self.bot_settings["whitelist"]:
@@ -126,13 +123,24 @@ class Dev(commands.Cog):
     @dev.command(name="eval", aliases=["이발"])
     async def eval(self, ctx, *, line: str):
         res = eval(line)
-        await ctx.send(res)
+        await ctx.send(res if res else "(결과 없음)")
 
     @dev.command(name="exec", aliases=["이색"])
     async def exec(self, ctx, *, line: str):
         res = exec(compile(line, "<string>", "exec"))
-        await ctx.send(res)
+        await ctx.send(res if res else "(결과 없음)")
+
+    @dev.command(name="주식추가")
+    async def add_stock(self, ctx, name, base_price=1000):
+        await self.jbot_db_global.exec_sql("""INSERT INTO stock(name, curr_price) VALUES (?,?)""", (name, base_price))
+        await ctx.send("추가완료")
+
+    @dev.command(name="임베드테스트")
+    async def embed_test(self, ctx, url):
+        embed = discord.Embed()
+        embed.set_image(url=url)
+        await ctx.send(embed=embed)
 
 
-def setup(bot):
+def setup(bot: CustomClient):
     bot.add_cog(Dev(bot))

@@ -18,18 +18,15 @@
 import discord
 import asyncio
 from discord.ext import commands
-from modules import jbot_db
+from modules.cilent import CustomClient
 
 loop = asyncio.get_event_loop()
 
 
 class Credit(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: CustomClient):
         self.bot = bot
-        self.jbot_db_global = jbot_db.JBotDB("jbot_db_global")
-
-    def cog_unload(self):
-        loop.run_until_complete(self.jbot_db_global.close_db())
+        self.jbot_db_global = bot.jbot_db_global
 
     @commands.command(name="크레딧", description="제이봇의 크레딧을 보여줍니다.")
     async def credit(self, ctx):
@@ -94,5 +91,5 @@ class Credit(commands.Cog):
         await voice.disconnect()
 
 
-def setup(bot):
+def setup(bot: CustomClient):
     bot.add_cog(Credit(bot))

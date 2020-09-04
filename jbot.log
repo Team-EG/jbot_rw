@@ -1,5 +1,4 @@
-2020-08-27 23:18:13,707:INFO:discord: DB Loaded.
-2020-08-27 23:18:14,513:INFO:discord.client: logging in using static token
-2020-08-27 23:18:15,333:INFO:discord.gateway: Shard ID 0 has sent the IDENTIFY payload.
-2020-08-27 23:18:15,578:INFO:discord.gateway: Shard ID 0 has connected to Gateway: ["gateway-prd-main-9f74",{"micros":47179,"calls":["discord-sessions-prd-2-5",{"micros":44542,"calls":["start_session",{"micros":32235,"calls":["api-prd-main-3qw9",{"micros":29578,"calls":["get_user",{"micros":2557},"add_authorized_ip",{"micros":1520},"get_guilds",{"micros":1626},"coros_wait",{"micros":1}]}]},"guilds_connect",{"micros":8,"calls":[]},"presence_connect",{"micros":7044,"calls":[]}]}]}] (Session ID: b4c39e593c77c27d4a674ab41338353e).
-2020-08-27 23:18:17,601:INFO:discord: Bot online.
+2020-09-04 15:03:05,017:INFO:discord.client: logging in using static token
+2020-09-04 15:03:05,967:INFO:discord.gateway: Shard ID 0 has sent the IDENTIFY payload.
+2020-09-04 15:03:06,307:INFO:discord.gateway: Shard ID 0 has connected to Gateway: ["gateway-prd-main-8wk4",{"micros":144293,"calls":["discord-sessions-prd-2-49",{"micros":142679,"calls":["start_session",{"micros":121414,"calls":["api-prd-main-23r3",{"micros":118083,"calls":["get_user",{"micros":3334},"add_authorized_ip",{"micros":14686},"get_guilds",{"micros":6496},"coros_wait",{"micros":1}]}]},"guilds_connect",{"micros":3,"calls":[]},"presence_connect",{"micros":8120,"calls":[]}]}]}] (Session ID: a2c1713aab8843b7b706e9d12f6ce185).
+2020-09-04 15:03:08,319:INFO:discord: Bot online.

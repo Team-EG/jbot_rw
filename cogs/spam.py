@@ -21,14 +21,15 @@ import time
 import os
 import shutil
 from discord.ext import commands
-from modules import admin, jbot_db
+from modules import admin
+from modules.cilent import CustomClient
 
 
 class Spam(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: CustomClient):
         self.bot = bot
-        self.jbot_db_global = jbot_db.JBotDB("jbot_db_global")
-        self.jbot_db_warns = jbot_db.JBotDB("jbot_db_warns")
+        self.jbot_db_global = bot.jbot_db_global
+        self.jbot_db_warns = bot.jbot_db_warns
 
     @commands.command(name="도배리셋", description="도배 카운트를 리셋합니다.", usage="`도배리셋 (유저)`")
     @commands.has_permissions(manage_messages=True)

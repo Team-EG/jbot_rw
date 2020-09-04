@@ -17,9 +17,9 @@
 """
 import discord
 import datetime
-import json
 import time
 from . import jbot_db, confirm, custom_errors
+from .cilent import CustomClient
 from discord.ext import commands
 
 
@@ -91,7 +91,7 @@ async def remove_warn(jbot_db_global: jbot_db.JBotDB, jbot_db_warns: jbot_db.JBo
     await send_to_log(jbot_db_global, guild, embed)
 
 
-async def update_setup(jbot_db_global: jbot_db.JBotDB, bot: commands.Bot, ctx: commands.Context, msg: discord.Message,
+async def update_setup(jbot_db_global: jbot_db.JBotDB, bot: CustomClient, ctx: commands.Context, msg: discord.Message,
                        embed_list: list, setup_type: str, to_change):
     embed_ok = embed_list[0]
     embed_no = embed_list[1]

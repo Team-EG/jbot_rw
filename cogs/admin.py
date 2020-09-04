@@ -19,19 +19,17 @@ import discord
 import typing
 import asyncio
 from discord.ext import commands
-from modules import admin, jbot_db, custom_errors
+from modules import admin, custom_errors
+from modules.cilent import CustomClient
 
 loop = asyncio.get_event_loop()
 
 
 class Admin(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: CustomClient):
         self.bot = bot
-        self.jbot_db_global = jbot_db.JBotDB("jbot_db_global")
-        self.jbot_db_warns = jbot_db.JBotDB("jbot_db_warns")
-
-    def cog_unload(self):
-        loop.run_until_complete(self.jbot_db_warns.close_db())
+        self.jbot_db_global = bot.jbot_db_global
+        self.jbot_db_warns = bot.jbot_db_warns
 
     async def cog_check(self, ctx):
         if ctx.invoked_with in ["추방", "경고", "경고삭제", "정리", "뮤트", "언뮤트"]:
@@ -150,5 +148,5 @@ class Admin(commands.Cog):
         await ctx.send("완료")"""
 
 
-def setup(bot):
+def setup(bot: CustomClient):
     bot.add_cog(Admin(bot))

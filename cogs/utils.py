@@ -22,14 +22,14 @@ import os
 import random
 import platform
 from discord.ext import commands
-from modules import jbot_db, confirm, page
+from modules import confirm, page
 
 
 class Utils(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.jbot_db_global = jbot_db.JBotDB("jbot_db_global")
-        self.jbot_db_warns = jbot_db.JBotDB("jbot_db_warns")
+        self.jbot_db_global = bot.jbot_db_global
+        self.jbot_db_warns = bot.jbot_db_warns
 
     @commands.command(name="안녕", description="Hello, World!")
     async def hello(self, ctx):

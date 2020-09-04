@@ -20,18 +20,18 @@ import asyncio
 import json
 from discord.ext import commands
 from modules import custom_errors
-from modules import jbot_db
 from modules import admin
 from modules import confirm
+from modules.cilent import CustomClient
 
 loop = asyncio.get_event_loop()
 emoji_list = []
 
 
 class GuildSetup(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: CustomClient):
         self.bot = bot
-        self.jbot_db_global = jbot_db.JBotDB("jbot_db_global")
+        self.jbot_db_global = bot.jbot_db_global
 
     def cog_unload(self):
         loop.run_until_complete(self.jbot_db_global.close_db())
@@ -73,8 +73,7 @@ class GuildSetup(commands.Cog):
     @commands.group(name="설정", description="봇의 기능과 관련된 부분을 설정합니다.", usage="`설정 도움` 명령어를 참고해주세요.")
     async def settings(self, ctx):
         if ctx.invoked_subcommand is None:
-            guild_data = \
-            (await self.jbot_db_global.res_sql("SELECT * FROM guild_setup WHERE guild_id=?", (ctx.guild.id,)))[0]
+            guild_data = (await self.jbot_db_global.res_sql("SELECT * FROM guild_setup WHERE guild_id=?", (ctx.guild.id,)))[0]
             for x in guild_data.keys():
                 if guild_data[x] is None:
                     guild_data[x] = "없음"
@@ -336,5 +335,5 @@ class GuildSetup(commands.Cog):
         await ctx.send(embed=embed)
 
 
-def setup(bot):
+def setup(bot: CustomClient):
     bot.add_cog(GuildSetup(bot))

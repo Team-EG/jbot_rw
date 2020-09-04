@@ -19,7 +19,7 @@ import discord
 import random
 import asyncio
 from discord.ext import commands
-from modules import jbot_db
+from modules.cilent import CustomClient
 
 loop = asyncio.get_event_loop()
 easteregg_info = {
@@ -35,9 +35,9 @@ easteregg_how_to = {
 
 
 class EasterEgg(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: CustomClient):
         self.bot = bot
-        self.jbot_db_global = jbot_db.JBotDB("jbot_db_global")
+        self.jbot_db_global = bot.jbot_db_global
 
     def cog_unload(self):
         loop.run_until_complete(self.jbot_db_global.close_db())
@@ -98,5 +98,5 @@ class EasterEgg(commands.Cog):
         await self.jbot_db_global.exec_sql("UPDATE easteregg SET anyhorse=? WHERE user_id=?", (1, ctx.author.id))
 
 
-def setup(bot):
+def setup(bot: CustomClient):
     bot.add_cog(EasterEgg(bot))

@@ -23,7 +23,8 @@ import time
 import asyncio
 import random
 from discord.ext import commands
-from modules import get_youtube, page, confirm, jbot_db
+from modules import get_youtube, page, confirm
+from modules.cilent import CustomClient
 
 
 async def get_queue(guild_id):
@@ -119,12 +120,9 @@ loop = asyncio.get_event_loop()
 
 
 class Music(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: CustomClient):
         self.bot = bot
-        self.jbot_db_global = jbot_db.JBotDB("jbot_db_global")
-
-    def cog_unload(self):
-        loop.run_until_complete(self.jbot_db_global.close_db())
+        self.jbot_db_global = bot.jbot_db_global
 
     @commands.command(name="재생", description="음악을 재생합니다.", usage="`재생 [유튜브 URL 또는 제목]`", aliases=["play", "p", "ㅔ", "대기", "queue", "q", "ㅂ"])
     async def play(self, ctx, *, url):

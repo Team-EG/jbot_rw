@@ -16,12 +16,12 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 import discord
-import json
 import koreanbots
 import os
 import asyncio
 from discord.ext import commands
 from modules import page
+from modules.cilent import CustomClient
 
 cog_names = {
     "Help": "도움",
@@ -33,7 +33,7 @@ cog_names = {
     "Dev": "개발자",
     "Error": "오류",
     "Spam": "도배",
-    "Presence": "상태",
+    "Tasks": "태스크",
     "Music": "뮤직",
     "GuildSetup": "설정",
     "ServerLog": "서버 로그",
@@ -43,27 +43,27 @@ prohibited_cogs = ["Dev", "Error", "Presence", "EasterEgg"]
 
 
 class Help(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: CustomClient):
         self.bot = bot
-        with open("bot_settings.json", "r") as f:
-            bot_settings = json.load(f)
-            token = bot_settings["koreanbots_token"]
-        self.client = koreanbots.Client(self.bot, token, postCount=False)
+        self.koreanbots = bot.koreanbots
         self.sent_users = []
 
-    async def cog_before_invoke(self, ctx):
+    async def cog_after_invoke(self, ctx):
         if ctx.author.id in self.sent_users:
             return
         try:
-            res = await self.client.getVote(ctx.author.id)
+            res = await self.koreanbots.getVote(ctx.author.id)
             if res.response["voted"]:
                 return
         except koreanbots.NotFound:
             pass
         finally:
             self.sent_users.append(ctx.author.id)
+            if len(self.sent_users) >= 10:
+                self.sent_users = []
         embed = discord.Embed(title="잠시만요!",
-                              description="아직 코리안봇에서 제이봇에게 하트를 누르지 않으셨네요...\n지금 [여기를 눌러서](https://koreanbots.dev/bots/622710354836717580) 코리안봇에 투표해주세요!",
+                              description="아직 코리안봇에서 제이봇에게 하트를 누르지 않으셨네요...\n"
+                                          "지금 [여기를 눌러서](https://koreanbots.dev/bots/622710354836717580) 코리안봇에 투표해주세요!",
                               color=discord.Color.red())
         await ctx.send(embed=embed)
 
@@ -199,5 +199,5 @@ class Help(commands.Cog):
         await page.start_page(self.bot, ctx=ctx, lists=embed_list, embed=True)
 
 
-def setup(bot):
+def setup(bot: CustomClient):
     bot.add_cog(Help(bot))

@@ -1,6 +1,5 @@
 import discord
 import asyncio
-from discord.ext import commands
 
 
 async def start_page(bot, ctx, lists: list, time: int = 30, embed=False):
