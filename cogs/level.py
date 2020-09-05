@@ -24,7 +24,7 @@ import json
 import asyncio
 from discord.ext import commands
 from modules import lvl_calc
-from modules import page
+from modules import utils
 from modules import custom_errors
 from modules import jbot_db
 from modules.cilent import CustomClient
@@ -84,7 +84,7 @@ class Level(commands.Cog):
         embed_list.append(embed)
         if len(embed_list) == 1:
             return await ctx.send(embed=embed)
-        await page.start_page(self.bot, ctx=ctx, lists=embed_list, embed=True)
+        await utils.start_page(self.bot, ctx=ctx, lists=embed_list, embed=True)
 
     @commands.Cog.listener()
     async def on_message(self, message):

@@ -23,7 +23,7 @@ import time
 import asyncio
 import random
 from discord.ext import commands
-from modules import get_youtube, page, confirm
+from modules import get_youtube, utils
 from modules.cilent import CustomClient
 
 
@@ -40,7 +40,7 @@ async def update_queue(guild_id, queue_json):
         json.dump(queue_json, f, indent=4)
 
 
-async def queue_task(bot: commands.Bot, ctx: commands.Context, voice: discord.VoiceClient):
+async def queue_task(bot: CustomClient, ctx: commands.Context, voice: discord.VoiceClient):
     while True:
         exists = os.path.isfile(f"music/{ctx.guild.id}.json")
         if not exists:
@@ -197,7 +197,7 @@ class Music(commands.Cog):
         queue = await get_queue(ctx.guild.id)
         if queue["playing"]["loop"] is not True:
             msg = await ctx.send(f"{ctx.author.mention} 정말로 이 음악을 무한반복할까요?")
-            res = await confirm.confirm(self.bot, ctx, msg)
+            res = await utils.confirm(self.bot, ctx, msg)
             if res is not True:
                 return await msg.edit(content=f"{ctx.author.mention} 무한반복이 취소되었습니다.")
             queue["playing"]["loop"] = True
@@ -205,7 +205,7 @@ class Music(commands.Cog):
             return await msg.edit(content=f"{ctx.author.mention} 이 음악을 무한반복할께요!")
         elif queue["playing"]["loop"] is True:
             msg = await ctx.send(f"{ctx.author.mention} 정말로 무한반복을 해제할까요?")
-            res = await confirm.confirm(self.bot, ctx, msg)
+            res = await utils.confirm(self.bot, ctx, msg)
             if res is not True:
                 return await msg.edit(content=f"{ctx.author.mention} 무한반복 해제가 취소되었습니다.")
             queue["playing"]["loop"] = False
@@ -220,7 +220,7 @@ class Music(commands.Cog):
         queue = await get_queue(ctx.guild.id)
         if queue["playing"]["random"] is not True:
             msg = await ctx.send(f"{ctx.author.mention} 정말로 랜덤 재생 기능을 켤까요?")
-            res = await confirm.confirm(self.bot, ctx, msg)
+            res = await utils.confirm(self.bot, ctx, msg)
             if res is not True:
                 return await msg.edit(content=f"{ctx.author.mention} 랜덤 재생이 취소되었습니다.")
             queue["playing"]["random"] = True
@@ -228,7 +228,7 @@ class Music(commands.Cog):
             return await msg.edit(content=f"{ctx.author.mention} 랜덤 재생이 켜졌어요!")
         elif queue["playing"]["random"] is True:
             msg = await ctx.send(f"{ctx.author.mention} 정말로 랜덤 재생을 해제할까요?")
-            res = await confirm.confirm(self.bot, ctx, msg)
+            res = await utils.confirm(self.bot, ctx, msg)
             if res is not True:
                 return await msg.edit(content=f"{ctx.author.mention} 랜덤 재생 해제가 취소되었습니다.")
             queue["playing"]["random"] = False
@@ -360,7 +360,7 @@ class Music(commands.Cog):
         next_embed.set_image(url=next_thumb)
         embed_list.append(ql_embed)
         embed_list.append(next_embed)
-        await page.start_page(self.bot, ctx, embed_list, embed=True)
+        await utils.start_page(self.bot, ctx, embed_list, embed=True)
 
     @commands.group(name="재생목록", description="자신의 재생목록을 보여줍니다.")
     async def playlist(self, ctx):
@@ -388,7 +388,7 @@ class Music(commands.Cog):
             embed_list.append(tgt_embed)
             if len(embed_list) == 1:
                 return await ctx.send(embed=embed_list[0])
-            await page.start_page(self.bot, ctx, embed_list, embed=True)
+            await utils.start_page(self.bot, ctx, embed_list, embed=True)
 
     @playlist.command(name="추가")
     async def add_playlist(self, ctx, *, url):
@@ -401,7 +401,7 @@ class Music(commands.Cog):
         embed.add_field(name="링크", value=vid_url, inline=False)
         embed.set_image(url=thumb)
         msg = await ctx.send(embed=embed)
-        res = await confirm.confirm(self.bot, ctx, msg)
+        res = await utils.confirm(self.bot, ctx, msg)
         if not res:
             reject = discord.Embed(title="재생목록 추가", description="재생목록 추가가 취소되었습니다.")
             return await msg.edit(embed=reject)
@@ -427,7 +427,7 @@ class Music(commands.Cog):
         embed.add_field(name="제목", value=vid_title, inline=False)
         embed.add_field(name="링크", value=vid_url, inline=False)
         msg = await ctx.send(embed=embed)
-        res = await confirm.confirm(self.bot, ctx, msg)
+        res = await utils.confirm(self.bot, ctx, msg)
         if not res:
             reject = discord.Embed(title="재생목록 제거", description="재생목록 제거가 취소되었습니다.")
             return await msg.edit(embed=reject)

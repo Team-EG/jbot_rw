@@ -19,7 +19,8 @@ import discord
 import json
 import logging
 from discord.ext import commands
-from modules import custom_errors, utils
+from modules import custom_errors
+from modules import utils
 
 
 class Error(commands.Cog):

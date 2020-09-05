@@ -18,7 +18,7 @@
 import discord
 import datetime
 import time
-from . import jbot_db, confirm, custom_errors
+from . import jbot_db, utils, custom_errors
 from .cilent import CustomClient
 from discord.ext import commands
 
@@ -96,7 +96,7 @@ async def update_setup(jbot_db_global: jbot_db.JBotDB, bot: CustomClient, ctx: c
     embed_ok = embed_list[0]
     embed_no = embed_list[1]
     embed_cancel = embed_list[2]
-    res = await confirm.confirm(bot, ctx, msg)
+    res = await utils.confirm(bot, ctx, msg)
     if res is True:
         await jbot_db_global.exec_sql(f"UPDATE guild_setup SET {setup_type}=? WHERE guild_id=?", (to_change, ctx.guild.id))
         await msg.edit(embed=embed_ok)

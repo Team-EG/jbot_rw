@@ -21,7 +21,6 @@ import json
 from discord.ext import commands
 from modules import custom_errors
 from modules import admin
-from modules import confirm
 from modules.cilent import CustomClient
 
 loop = asyncio.get_event_loop()

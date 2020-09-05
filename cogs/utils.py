@@ -22,7 +22,7 @@ import os
 import random
 import platform
 from discord.ext import commands
-from modules import confirm, page
+from modules import utils
 
 
 class Utils(commands.Cog):
@@ -145,7 +145,7 @@ class Utils(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def tix(self, ctx, *, ticket):
         msg = await ctx.send("정말로 건의사항을 보낼까요?\n장난으로 보내는 등 불필요하게 건의사항을 보내는 경우 건의사항 기능을 사용할 수 없게 될 수도 있습니다.")
-        res = await confirm.confirm(self.bot, ctx, msg)
+        res = await utils.confirm(self.bot, ctx, msg)
         if res is True:
             owner = self.bot.get_user(288302173912170497)
             await owner.send(f"`건의사항 ({ctx.author} / {ctx.author.id})`")
@@ -171,11 +171,12 @@ class Utils(commands.Cog):
                 tgt_embed = base_embed.copy()
             issued_by = ctx.guild.get_member(x['issued_by'])
             issued_by = issued_by.mention if issued_by is not None else f"이미 이 서버에서 나간 유저입니다. (유저 ID: {x['issued_by']})"
-            tgt_embed.add_field(name="경고번호: " + str(x["date"]), value=f"경고를 부여한 유저: {issued_by}\n사유: {x['reason']}",
+            tgt_embed.add_field(name="경고번호: " + str(x["date"]),
+                                value=f"경고를 부여한 유저: {issued_by}\n사유: {x['reason']}",
                                 inline=False)
             count += 1
         embed_list.append(tgt_embed)
-        await page.start_page(bot=self.bot, ctx=ctx, lists=embed_list, embed=True)
+        await utils.start_page(bot=self.bot, ctx=ctx, lists=embed_list, embed=True)
 
     @commands.command(name="소스코드", description="제이봇의 소스코드를 보여줍니다.")
     async def source_code(self, ctx):

@@ -20,7 +20,7 @@ import koreanbots
 import os
 import asyncio
 from discord.ext import commands
-from modules import page
+from modules import utils
 from modules.cilent import CustomClient
 
 cog_names = {
@@ -106,7 +106,7 @@ class Help(commands.Cog):
             curr_embed.add_field(name=x.name, value=str(x.description)+"\n사용법: "+(str(x.usage) if x.usage else f"`{x.name}`")+"\n에일리어스: " + (', '.join(x.aliases) if bool(x.aliases) else "없음"), inline=False)
             count += 1
         embed_list.append(curr_embed)
-        await page.start_page(self.bot, ctx=ctx, lists=embed_list, embed=True)
+        await utils.start_page(self.bot, ctx=ctx, lists=embed_list, embed=True)
 
     @help.command(name="검색")
     async def help_search(self, ctx, cmd_name):
@@ -196,7 +196,7 @@ class Help(commands.Cog):
             tgt_embed.set_footer(text=f"페이지 {count}/{len(guide_pages)}")
             embed_list.append(tgt_embed)
         await msg.delete()
-        await page.start_page(self.bot, ctx=ctx, lists=embed_list, embed=True)
+        await utils.start_page(self.bot, ctx=ctx, lists=embed_list, embed=True)
 
 
 def setup(bot: CustomClient):

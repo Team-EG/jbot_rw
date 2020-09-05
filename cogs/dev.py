@@ -21,11 +21,9 @@ import psutil
 import os
 import datetime
 import asyncio
-import random
 from discord.ext import commands
 from modules import custom_errors
 from modules.cilent import CustomClient
-from modules import confirm
 
 loop = asyncio.get_event_loop()
 
