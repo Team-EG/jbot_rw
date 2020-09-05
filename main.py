@@ -22,7 +22,6 @@ import os
 import logging
 import nest_asyncio
 from discord.ext import commands
-from modules import jbot_db
 from modules import custom_errors
 from modules.cilent import CustomClient
 
@@ -36,9 +35,7 @@ handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(me
 logger.addHandler(handler)
 
 print("Removing all temp files...")
-temp_file_list = os.listdir("temp")
-for fl in temp_file_list:
-    os.remove("temp/"+fl)
+[os.remove("temp/"+x) for x in os.listdir("temp")]
 print("Done!")
 
 
