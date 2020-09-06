@@ -1,7 +1,4 @@
-2020-09-06 17:38:09,704:INFO:discord.client: logging in using static token
-2020-09-06 17:38:10,503:INFO:discord.gateway: Shard ID 0 has sent the IDENTIFY payload.
-2020-09-06 17:38:10,745:INFO:discord.gateway: Shard ID 0 has connected to Gateway: ["gateway-prd-main-shp3",{"micros":45466,"calls":["discord-sessions-prd-2-29",{"micros":40207,"calls":["start_session",{"micros":37447,"calls":["api-prd-main-8sb5",{"micros":33663,"calls":["get_user",{"micros":4015},"add_authorized_ip",{"micros":1585},"get_guilds",{"micros":1636},"coros_wait",{"micros":1}]}]},"guilds_connect",{"micros":8,"calls":[]},"presence_connect",{"micros":0,"calls":[]}]}]}] (Session ID: 469817b76474ca3758254e2f548e83b4).
-2020-09-06 17:38:12,767:INFO:discord: Bot online.
-2020-09-06 19:05:55,554:INFO:discord.shard: Got a request to RESUME the websocket at Shard ID 0.
-2020-09-06 19:05:55,894:INFO:discord.gateway: Shard ID 0 has sent the RESUME payload.
-2020-09-06 19:05:56,130:INFO:discord.gateway: Shard ID 0 has successfully RESUMED session 469817b76474ca3758254e2f548e83b4 under trace ["gateway-prd-main-d5jm",{"micros":5639,"calls":["discord-sessions-prd-2-29",{"micros":76}]}].
+2020-09-06 23:48:01,719:INFO:discord.client: logging in using static token
+2020-09-06 23:48:02,604:INFO:discord.gateway: Shard ID 0 has sent the IDENTIFY payload.
+2020-09-06 23:48:02,908:INFO:discord.gateway: Shard ID 0 has connected to Gateway: ["gateway-prd-main-b43w",{"micros":98724,"calls":["discord-sessions-prd-2-75",{"micros":97492,"calls":["start_session",{"micros":78376,"calls":["api-prd-main-87g9",{"micros":75770,"calls":["get_user",{"micros":8326},"add_authorized_ip",{"micros":4354},"get_guilds",{"micros":1700},"coros_wait",{"micros":1}]}]},"guilds_connect",{"micros":4,"calls":[]},"presence_connect",{"micros":2,"calls":[]}]}]}] (Session ID: c2d3d37e45e5393525b82ba423211e0e).
+2020-09-06 23:48:04,923:INFO:discord: Bot online.
