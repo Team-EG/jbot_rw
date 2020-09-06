@@ -53,10 +53,12 @@ async def get_prefix(bot, message):
     data = (await jbot_db_global.res_sql("""SELECT prefix FROM guild_setup WHERE guild_id=?""", (message.guild.id,)))
     try:
         guild_prefix = data[0]["prefix"]
-    except (IndexError, AttributeError):
+    except IndexError:
         await jbot_db_global.exec_sql("INSERT INTO guild_setup(guild_id) VALUES (?)", (message.guild.id,))
         data = (await jbot_db_global.res_sql("""SELECT prefix FROM guild_setup WHERE guild_id=?""", (message.guild.id,)))
         guild_prefix = data[0]["prefix"]
+    except AttributeError:
+        guild_prefix = "제이봇 "
     return commands.when_mentioned_or(*['제이봇 ', 'j!', guild_prefix])(bot, message)
 
 
