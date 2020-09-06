@@ -52,13 +52,14 @@ async def get_prefix(bot, message):
     jbot_db_global = bot.jbot_db_global
     data = (await jbot_db_global.res_sql("""SELECT prefix FROM guild_setup WHERE guild_id=?""", (message.guild.id,)))
     try:
-        guild_prefix = data[0]["prefix"]
+        if message.guild is None:
+            guild_prefix = "제이봇 "
+        else:
+            guild_prefix = data[0]["prefix"]
     except IndexError:
         await jbot_db_global.exec_sql("INSERT INTO guild_setup(guild_id) VALUES (?)", (message.guild.id,))
         data = (await jbot_db_global.res_sql("""SELECT prefix FROM guild_setup WHERE guild_id=?""", (message.guild.id,)))
         guild_prefix = data[0]["prefix"]
-    except AttributeError:
-        guild_prefix = "제이봇 "
     return commands.when_mentioned_or(*['제이봇 ', 'j!', guild_prefix])(bot, message)
 
 
