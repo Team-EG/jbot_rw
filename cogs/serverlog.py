@@ -121,7 +121,8 @@ class ServerLog(commands.Cog):
             embed.add_field(name=f"{k} 역할 권한 변경됨", value=f"{k.mention} 역할의 변경된 권한들: \n`{', '.join(v)}`", inline=False)
             count += 1
         if count == 0:
-            embed.add_field(name="기타 변경됨", value="변경된 내용을 찾을 수 없습니다. (채널 주제, NSFW, 슬로우모드 등)")
+            # 너무 도배 가능성이 있다고 판단됨
+            return # embed.add_field(name="기타 변경됨", value="변경된 내용을 찾을 수 없습니다. (채널 주제, NSFW, 슬로우모드 등)")
         await admin.send_to_log(self.jbot_db_global, after.guild, embed)
 
     @commands.Cog.listener()
@@ -173,7 +174,8 @@ class ServerLog(commands.Cog):
         if count == 0:
             if not_for_this is True:
                 return
-            embed.add_field(name="기타 변경됨", value="변경된 내용을 찾을 수 없습니다. (봇이 감지할 수 없는 부분이 변경된 경우)", inline=False)
+            # 너무 도배 가능성이 있다고 판단됨
+            return # embed.add_field(name="기타 변경됨", value="변경된 내용을 찾을 수 없습니다. (봇이 감지할 수 없는 부분이 변경된 경우)", inline=False)
         await admin.send_to_log(self.jbot_db_global, after, embed)
 
     @commands.Cog.listener()

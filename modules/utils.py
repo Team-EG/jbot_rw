@@ -51,7 +51,7 @@ async def start_page(bot, ctx, lists: list, time: int = 30, embed=False):
 
     try:
         while True:
-            reaction = (await bot.wait_for("reaction_add", timeout=time, check=lambda r, u: r.message == msg and str(r.emoji) in emoji_list and u == ctx.author))[0]
+            reaction = (await bot.wait_for("reaction_add", timeout=time, check=lambda r, u: r.message.id == msg.id and str(r.emoji) in emoji_list and u == ctx.author))[0]
             if str(reaction.emoji) == emoji_list[1]:
                 try:
                     await msg.clear_reactions()
@@ -102,7 +102,7 @@ async def confirm(bot: CustomClient, ctx: commands.Context, msg: discord.Message
     await msg.add_reaction("❌")
 
     try:
-        reaction = (await bot.wait_for("reaction_add", timeout=time, check=lambda r, u: r.message == msg and str(r.emoji) in emoji_list and u == ctx.author))[0]
+        reaction = (await bot.wait_for("reaction_add", timeout=time, check=lambda r, u: r.message.id == msg.id and str(r.emoji) in emoji_list and u == ctx.author))[0]
         if str(reaction.emoji) == emoji_list[0]:
             return True
         elif str(reaction.emoji) == emoji_list[1]:

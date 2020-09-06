@@ -139,6 +139,15 @@ class Dev(commands.Cog):
         embed.set_image(url=url)
         await ctx.send(embed=embed)
 
+    @dev.command(name="주가조작")
+    async def omg_stock_hax(self, ctx, tgt, amount: int):
+        to_hax = (await self.jbot_db_global.res_sql("""SELECT * FROM stock WHERE name=?""", (tgt,)))[0]
+        haxed = to_hax["curr_price"] + amount
+        history = to_hax["history"].split(',')
+        history.append(str(haxed))
+        await self.jbot_db_global.exec_sql("""UPDATE stock SET curr_price=?, history=? WHERE name=?""", (haxed, ','.join(history), tgt))
+        await ctx.send("완료")
+
 
 def setup(bot: CustomClient):
     bot.add_cog(Dev(bot))

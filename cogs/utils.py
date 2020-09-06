@@ -86,6 +86,8 @@ class Utils(commands.Cog):
 
     @commands.group(name="서버", description="서버 정보를 보여줍니다.", aliases=["서버정보"])
     async def guild_info(self, ctx):
+        if ctx.invoked_with == "서버정보":
+            return await self.guild_info_info.__call__(ctx)
         if ctx.invoked_subcommand is None:
             embed = discord.Embed(title='서버 정보 명령어', colour=discord.Color.from_rgb(225, 225, 225))
             embed.add_field(name="서버 정보", value="서버의 정보를 보여줍니다.", inline=False)

@@ -70,9 +70,8 @@ class EasterEgg(commands.Cog):
         gulag = self.bot.get_emoji(724630497250246709)
         await ctx.send(str(gulag) * amount)
         exist = await self.jbot_db_global.res_sql("SELECT gulag FROM easteregg WHERE user_id=?", (ctx.author.id,))
-        if bool(exist[0]["gulag"]):
-            return
-        await self.jbot_db_global.exec_sql("UPDATE easteregg SET gulag=? WHERE user_id=?", (1, ctx.author.id))
+        if not bool(exist[0]["gulag"]):
+            await self.jbot_db_global.exec_sql("UPDATE easteregg SET gulag=? WHERE user_id=?", (1, ctx.author.id))
 
     @commands.command(name="멋진굴라크")
     async def better_gulag(self, ctx):
@@ -90,9 +89,8 @@ class EasterEgg(commands.Cog):
                      'https://cdn.discordapp.com/attachments/568962070230466573/714854748754280582/ddd84f9331954aae.png']
         await ctx.send(f'{random.choice(responses)}')
         exist = await self.jbot_db_global.res_sql("SELECT anyhorse FROM easteregg WHERE user_id=?", (ctx.author.id,))
-        if bool(exist[0]["anyhorse"]):
-            return
-        await self.jbot_db_global.exec_sql("UPDATE easteregg SET anyhorse=? WHERE user_id=?", (1, ctx.author.id))
+        if not bool(exist[0]["anyhorse"]):
+            await self.jbot_db_global.exec_sql("UPDATE easteregg SET anyhorse=? WHERE user_id=?", (1, ctx.author.id))
 
 
 def setup(bot: CustomClient):

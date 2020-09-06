@@ -18,6 +18,8 @@
 import discord
 import typing
 import asyncio
+import os
+import json
 from discord.ext import commands
 from modules import admin, custom_errors
 from modules.cilent import CustomClient
@@ -32,6 +34,9 @@ class Admin(commands.Cog):
         self.jbot_db_warns = bot.jbot_db_warns
 
     async def cog_check(self, ctx):
+        if ctx.invoked_with in ["도배리셋"]:
+            if ctx.author.guild_permissions.manage_messages:
+                return True
         if ctx.invoked_with in ["추방", "경고", "경고삭제", "정리", "뮤트", "언뮤트"]:
             if ctx.author.guild_permissions.kick_members:
                 return True
@@ -41,6 +46,20 @@ class Admin(commands.Cog):
         if ctx.author.guild_permissions.administrator or ctx.author == ctx.guild.owner:
             return True
         raise custom_errors.NotAdmin
+
+    @commands.command(name="도배리셋", description="도배 카운트를 리셋합니다.", usage="`도배리셋 (유저)`")
+    async def reset_spam(self, ctx, tgt: discord.Member = None):
+        if tgt is None:
+            os.remove(f"temp/{ctx.guild.id}_spam.json")
+            return await ctx.send("도배 카운트 리셋이 완료되었습니다.")
+        with open(f"temp/{ctx.guild.id}_spam.json", "r") as f:
+            time_data = json.load(f)
+        if str(tgt.id) not in time_data.keys():
+            return await ctx.send("선택한 유저는 도배 카운트 기록에 없습니다.")
+        del time_data[str(tgt.id)]
+        with open(f"temp/{ctx.guild.id}_spam.json", "w") as f:
+            json.dump(time_data, f, indent=4)
+        await ctx.send("선택한 유저의 도배 카운트 리셋이 완료되었습니다.")
 
     @commands.command(name="뮤트", description="선택한 유저를 뮤트합니다.", usage="`뮤트 [유저] (사유)`")
     async def mute(self, ctx, member: discord.Member, *, reason="없음"):

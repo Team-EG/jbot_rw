@@ -5,12 +5,20 @@ import datetime
 import time
 from discord.ext import commands
 from modules import utils
+from modules import custom_errors
 
 
 class Stock(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.jbot_db_global = bot.jbot_db_global
+
+    async def cog_check(self, ctx: commands.Context):
+        acc_list = await self.jbot_db_global.res_sql("""SELECT * FROM game WHERE user_id=?""", (ctx.author.id,))
+        if not bool(acc_list):
+            await ctx.send("계정이 존재하지 않습니다. 먼저 계정을 생성해주세요")
+            raise custom_errors.IgnoreThis
+        return True
 
     @commands.group(name="주식", description="주식 관련 명령어입니다.", usage="`주식 도움` 명령어를 참고해주세요.")
     async def stock(self, ctx):
@@ -48,7 +56,7 @@ class Stock(commands.Cog):
         await self.stock.__call__(ctx)
 
     @stock.command(name="그래프")
-    @commands.cooldown(15, 1, commands.BucketType.user)
+    @commands.cooldown(1, 15, commands.BucketType.user)
     async def stock_graph(self, ctx, name=None):
         data = await self.jbot_db_global.res_sql("""SELECT name, history FROM stock""")
         if name is not None:

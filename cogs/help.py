@@ -37,9 +37,10 @@ cog_names = {
     "Music": "뮤직",
     "GuildSetup": "설정",
     "ServerLog": "서버 로그",
-    "Game": "게임"
+    "Game": "게임",
+    "Stock": "주식"
 }
-prohibited_cogs = ["Dev", "Error", "Presence", "EasterEgg"]
+prohibited_cogs = ["Dev", "Error", "Tasks", "EasterEgg", "ServerLog", "Spam"]
 
 
 class Help(commands.Cog):
@@ -62,14 +63,19 @@ class Help(commands.Cog):
             if len(self.sent_users) >= 10:
                 self.sent_users = []
         embed = discord.Embed(title="잠시만요!",
-                              description="아직 코리안봇에서 제이봇에게 하트를 누르지 않으셨네요...\n"
-                                          "지금 [여기를 눌러서](https://koreanbots.dev/bots/622710354836717580) 코리안봇에 투표해주세요!",
+                              description="도움말은 잘 보셨나요? 도움말을 보시는 동안 잠깐 확인해봤는데 아직 코리안봇에서 제이봇에게 하트를 누르지 않으셨네요...\n"
+                                          "지금 [여기를 눌러서](https://koreanbots.dev/bots/622710354836717580) 제이봇에게 하트를 눌러주세요!\n"
+                                          "잠깐만 시간을 내서 눌러주신다면 개발자에게 조금이지만 도움이 됩니다.",
                               color=discord.Color.red())
         await ctx.send(embed=embed)
 
     @commands.group(name="도움", description="봇의 도움말 명령어를 출력합니다.", aliases=["도움말", "help"])
-    async def help(self, ctx):
+    async def help(self, ctx, tgt=None):
         if ctx.invoked_subcommand is None:
+            if tgt:
+                if tgt in cog_names.values():
+                    return await self.help_by_category.__call__(ctx, tgt)
+                return await self.help_search.__call__(ctx, tgt)
             base_embed = discord.Embed(title="명령어 리스트",
                                        description="한눈에 보는 명령어 리스트\n"
                                                    "자세한 명령어 정보는 `도움 카테고리 [카테고리 이름]` 또는 `도움 검색 [명령어 이름]`을 참고해주세요.\n"
@@ -103,7 +109,9 @@ class Help(commands.Cog):
                 curr_embed = base_embed.copy()
             if x.description is None:
                 continue
-            curr_embed.add_field(name=x.name, value=str(x.description)+"\n사용법: "+(str(x.usage) if x.usage else f"`{x.name}`")+"\n에일리어스: " + (', '.join(x.aliases) if bool(x.aliases) else "없음"), inline=False)
+            curr_embed.add_field(name=x.name,
+                                 value=str(x.description)+"\n사용법: "+(str(x.usage) if x.usage else f"`{x.name}`")+"\n에일리어스: " + (', '.join(x.aliases) if bool(x.aliases) else "없음"),
+                                 inline=False)
             count += 1
         embed_list.append(curr_embed)
         await utils.start_page(self.bot, ctx=ctx, lists=embed_list, embed=True)

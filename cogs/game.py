@@ -108,9 +108,10 @@ class Game(commands.Cog):
     async def goto_hangang(self, ctx):
         go_or_nogo = random.randint(1, 100)
         if go_or_nogo <= 95:
-            current_debt = (await self.jbot_db_global.res_sql("""SELECT borrowed_money FROM game WHERE user_id=?""", (ctx.author.id,)))[0]["borrowed_money"]
+            debt_data = (await self.jbot_db_global.res_sql("""SELECT borrowed_money, borrowed_deadline FROM game WHERE user_id=?""", (ctx.author.id,)))[0]
+            current_debt = debt_data["borrowed_money"]
             amount = 2000000 + int(current_debt)
-            borrowed_deadline = time.time() + (60 * 60 * 72)
+            borrowed_deadline = debt_data["borrowed_deadline"] if bool(debt_data["borrowed_deadline"]) else time.time() + (60 * 60 * 72)
             embed = discord.Embed(title="한강가즈아 실패", description="당신은 한강에 뛰어내렸지만 구조되었습니다. 벌금으로 빚 200만원이 추가되었습니다.", color=discord.Color.green())
             await self.jbot_db_global.exec_sql("""UPDATE game SET borrowed_money=?, borrowed_deadline=? WHERE user_id=?""", (amount, borrowed_deadline, ctx.author.id))
             return await ctx.send(embed=embed)
@@ -121,14 +122,14 @@ class Game(commands.Cog):
                               color=discord.Color.red())
         await ctx.send(embed=embed)
 
-    @commands.command(name="알바", description="알바를 통해 돈을 얻습니다.")
+    @commands.command(name="용돈", description="용돈을 얻습니다.")
     @commands.cooldown(1, 60*10, commands.BucketType.user)
     async def work(self, ctx):
         money = (await self.jbot_db_global.res_sql("""SELECT money FROM game WHERE user_id=?""", (ctx.author.id,)))[0]["money"]
-        to_add = random.randint(1000, 8590)
+        to_add = random.randint(1000, 10000)
         money += to_add
         await self.jbot_db_global.exec_sql("""UPDATE game SET money=? WHERE user_id=?""", (money, ctx.author.id))
-        embed = discord.Embed(title="알바 완료", description=f"알바를 통해 `{to_add}`원을 벌었습니다.\n현재 당신의 지갑에는 `{money}`원이 있습니다.", color=discord.Color.red())
+        embed = discord.Embed(title="알바 완료", description=f"용돈 `{to_add}`원을 얻었습니다.\n현재 당신의 지갑에는 `{money}`원이 있습니다.", color=discord.Color.red())
         await ctx.send(embed=embed)
 
     @commands.command(name="지갑", description="자신 또는 해당 유저의 계정을 보여줍니다.", usage="`지갑 (유저)`", aliases=["계정"])
@@ -308,7 +309,7 @@ class Game(commands.Cog):
         money = (await self.jbot_db_global.res_sql("""SELECT money FROM game WHERE user_id=?""", (ctx.author.id,)))[0]["money"]
         if to_lose_money > money:
             return await ctx.send("돈이 부족합니다.")
-        can_do_list = ["비트코인", "부동산", "지인이 추천해준", "IT기업"]
+        can_do_list = ["비트코인", "부동산", "지인이 추천해준", "IT기업", "크라우드 펀딩"]
         percentage = random.randint(1, 100)
         random_times = random.randint(2, 4)
         if percentage <= 30:

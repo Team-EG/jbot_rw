@@ -1,6 +1,7 @@
-2020-09-06 13:57:13,493:INFO:discord.client: logging in using static token
-2020-09-06 13:57:14,304:INFO:discord.gateway: Shard ID 0 has sent the IDENTIFY payload.
-2020-09-06 13:57:14,578:INFO:discord.gateway: Shard ID 0 has connected to Gateway: ["gateway-prd-main-hgx4",{"micros":75285,"calls":["discord-sessions-prd-1-18",{"micros":74355,"calls":["start_session",{"micros":31038,"calls":["api-prd-main-bh6q",{"micros":28160,"calls":["get_user",{"micros":2242},"add_authorized_ip",{"micros":1453},"get_guilds",{"micros":1233},"coros_wait",{"micros":1}]}]},"guilds_connect",{"micros":4,"calls":[]},"presence_connect",{"micros":22436,"calls":[]}]}]}] (Session ID: 58980bc8a49f64dfbe98d1f88f539e6f).
-2020-09-06 13:57:16,608:INFO:discord: Bot online.
-2020-09-06 13:57:19,585:INFO:discord.client: Cleaning up tasks.
-2020-09-06 13:57:19,585:INFO:discord.client: Closing the event loop.
+2020-09-06 17:38:09,704:INFO:discord.client: logging in using static token
+2020-09-06 17:38:10,503:INFO:discord.gateway: Shard ID 0 has sent the IDENTIFY payload.
+2020-09-06 17:38:10,745:INFO:discord.gateway: Shard ID 0 has connected to Gateway: ["gateway-prd-main-shp3",{"micros":45466,"calls":["discord-sessions-prd-2-29",{"micros":40207,"calls":["start_session",{"micros":37447,"calls":["api-prd-main-8sb5",{"micros":33663,"calls":["get_user",{"micros":4015},"add_authorized_ip",{"micros":1585},"get_guilds",{"micros":1636},"coros_wait",{"micros":1}]}]},"guilds_connect",{"micros":8,"calls":[]},"presence_connect",{"micros":0,"calls":[]}]}]}] (Session ID: 469817b76474ca3758254e2f548e83b4).
+2020-09-06 17:38:12,767:INFO:discord: Bot online.
+2020-09-06 19:05:55,554:INFO:discord.shard: Got a request to RESUME the websocket at Shard ID 0.
+2020-09-06 19:05:55,894:INFO:discord.gateway: Shard ID 0 has sent the RESUME payload.
+2020-09-06 19:05:56,130:INFO:discord.gateway: Shard ID 0 has successfully RESUMED session 469817b76474ca3758254e2f548e83b4 under trace ["gateway-prd-main-d5jm",{"micros":5639,"calls":["discord-sessions-prd-2-29",{"micros":76}]}].
