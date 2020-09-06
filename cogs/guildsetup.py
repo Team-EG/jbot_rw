@@ -32,9 +32,6 @@ class GuildSetup(commands.Cog):
         self.bot = bot
         self.jbot_db_global = bot.jbot_db_global
 
-    def cog_unload(self):
-        loop.run_until_complete(self.jbot_db_global.close_db())
-
     async def cog_check(self, ctx):
         if ctx.author.guild_permissions.administrator or ctx.author == ctx.guild.owner:
             return True

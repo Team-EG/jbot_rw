@@ -39,9 +39,6 @@ class EasterEgg(commands.Cog):
         self.bot = bot
         self.jbot_db_global = bot.jbot_db_global
 
-    def cog_unload(self):
-        loop.run_until_complete(self.jbot_db_global.close_db())
-
     async def cog_before_invoke(self, ctx):
         try:
             got_list = (await self.jbot_db_global.res_sql("SELECT * FROM easteregg WHERE user_id=?", (ctx.author.id,)))[0]

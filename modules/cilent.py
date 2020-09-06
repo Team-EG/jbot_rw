@@ -1,5 +1,6 @@
 import koreanbots
 import json
+import sys
 from discord.ext import commands
 from . import jbot_db
 
@@ -10,7 +11,7 @@ class CustomClient(commands.AutoShardedBot):
             bot_settings = json.load(f)
             token = bot_settings["koreanbots_token"]
         super().__init__(*args, **kwargs)
-        self.koreanbots = koreanbots.Client(self, token, postCount=True)
+        self.koreanbots = koreanbots.Client(self, token, postCount=False)
         self.jbot_db_global = jbot_db.JBotDB("jbot_db_global")
         self.jbot_db_warns = jbot_db.JBotDB("jbot_db_warns")
         self.jbot_db_level = jbot_db.JBotDB("jbot_db_level")
@@ -23,3 +24,4 @@ class CustomClient(commands.AutoShardedBot):
             self.run(self.__canary_token)
         else:
             self.run(self.__stable_token)
+        sys.exit()

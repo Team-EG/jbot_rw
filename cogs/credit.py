@@ -55,7 +55,7 @@ class Credit(commands.Cog):
         channel = user_voice.channel
         await channel.connect()
         voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
-        voice.play(discord.FFmpegPCMAudio("https://jebserver.iptime.org/discord/jbot_credit.mp3"))
+        voice.play(discord.FFmpegPCMAudio("http://jebserver.iptime.org/discord/jbot_credit.mp3"))
         voice.source = discord.PCMVolumeTransformer(voice.source)
         voice.source.volume = 0.3
         exist = await self.jbot_db_global.res_sql("SELECT credit FROM easteregg WHERE user_id=?", (ctx.author.id,))

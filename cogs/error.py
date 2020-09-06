@@ -68,7 +68,7 @@ class Error(commands.Cog):
         else:
             logger = logging.getLogger("discord")
             logger.error(error)
-            embed.add_field(name="예기치 않은 오류 발생", value=f"```py\n{error}```")
+            embed.add_field(name="예기치 않은 오류 발생", value=f"```py\n{error}```\n이 오류 정보를 개발자에게 알려주시면 봇 개선에 도움이 됩니다. [이 링크를 통해 알려주세요.](https://discord.gg/gqJBhar)")
         await ctx.message.add_reaction("⚠")
         await ctx.send(embed=embed)
 

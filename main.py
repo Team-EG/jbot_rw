@@ -190,6 +190,17 @@ async def _new_cog(ctx):
         await msg.remove_reaction(reaction, ctx.author)
 
 
+@bot.command(name="종료")
+@commands.is_owner()
+async def _close(ctx):
+    await ctx.send("봇을 종료합니다.")
+    [bot.unload_extension(f"cogs.{x.replace('.py', '')}") for x in os.listdir("./cogs") if x.endswith('.py')]
+    await bot.jbot_db_global.close_db()
+    await bot.jbot_db_warns.close_db()
+    await bot.jbot_db_level.close_db()
+    await bot.close()
+
+
 [bot.load_extension(f"cogs.{x.replace('.py', '')}") for x in os.listdir("./cogs") if x.endswith('.py')]
 
 bot.run_bot(canary=True)

@@ -40,9 +40,6 @@ async def start_page(bot, ctx, lists: list, time: int = 30, embed=False):
 
     emoji_list = ["⬅", "⏹", "➡"]
 
-    def check(reaction, user):
-        return str(reaction.emoji) in emoji_list and user == ctx.author
-
     if embed is True:
         msg = await ctx.send(embed=lists[0])
     else:
@@ -54,7 +51,7 @@ async def start_page(bot, ctx, lists: list, time: int = 30, embed=False):
 
     try:
         while True:
-            reaction, user = await bot.wait_for("reaction_add", timeout=time, check=check)
+            reaction = (await bot.wait_for("reaction_add", timeout=time, check=lambda r, u: r.message == msg and str(r.emoji) in emoji_list and u == ctx.author))[0]
             if str(reaction.emoji) == emoji_list[1]:
                 try:
                     await msg.clear_reactions()
@@ -104,11 +101,8 @@ async def confirm(bot: CustomClient, ctx: commands.Context, msg: discord.Message
     await msg.add_reaction("⭕")
     await msg.add_reaction("❌")
 
-    def check(reaction, user):
-        return str(reaction.emoji) in emoji_list and user == ctx.author
-
     try:
-        reaction, user = await bot.wait_for("reaction_add", timeout=time, check=check)
+        reaction = (await bot.wait_for("reaction_add", timeout=time, check=lambda r, u: r.message == msg and str(r.emoji) in emoji_list and u == ctx.author))[0]
         if str(reaction.emoji) == emoji_list[0]:
             return True
         elif str(reaction.emoji) == emoji_list[1]:
