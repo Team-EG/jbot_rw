@@ -38,7 +38,8 @@ cog_names = {
     "GuildSetup": "설정",
     "ServerLog": "서버 로그",
     "Game": "게임",
-    "Stock": "주식"
+    "Stock": "주식",
+    "PartTime": "알바"
 }
 prohibited_cogs = ["Dev", "Error", "Tasks", "EasterEgg", "ServerLog", "Spam"]
 
