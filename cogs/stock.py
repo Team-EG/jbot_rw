@@ -20,6 +20,11 @@ class Stock(commands.Cog):
             raise custom_errors.IgnoreThis
         return True
 
+    @commands.command(name="그래프")
+    @commands.cooldown(1, 15, commands.BucketType.user)
+    async def graph_direct(self, ctx, *args):
+        await self.stock_graph.__call__(ctx, *args)
+
     @commands.group(name="주식", description="주식 관련 명령어입니다.", usage="`주식 도움` 명령어를 참고해주세요.")
     async def stock(self, ctx):
         if ctx.invoked_subcommand is None:

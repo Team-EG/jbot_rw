@@ -31,8 +31,10 @@ class Tasks(commands.Cog):
         self.jbot_db_global = bot.jbot_db_global
         self.presence_cycle.start()
         self.stock_price.start()
+        self.cancel = False
 
     def cog_unload(self):
+        self.cancel = True
         self.presence_cycle.cancel()
         self.stock_price.cancel()
 
@@ -40,6 +42,8 @@ class Tasks(commands.Cog):
     async def presence_cycle(self):
         # 팁: 이렇게 하면 오류로 무한루프가 멈춰도 다시 작동합니다
         while True:
+            if self.cancel:
+                break
             act_list = ["'제이봇 도움'이라고 말해보세요!",
                         f"{len(self.bot.guilds)}개 서버에서 작동",
                         f"{len(list(self.bot.get_all_members()))} 유저들과 함께"]
@@ -56,23 +60,25 @@ class Tasks(commands.Cog):
     @tasks.loop()
     async def stock_price(self):
         while True:
+            if self.cancel:
+                break
             stock = await self.jbot_db_global.res_sql("""SELECT * FROM stock""")
             for x in stock:
                 if len(stock) == 0:
                     break
                 random_price = random.randint(0, 100)
                 random_percentage = random.randint(1, 100)
-                random_multipler = random.choice([1, 1, 1, 1, random.randint(2, 5)])
+                random_multipler = random.choice([1, 1, 1, 1, random.randint(2, 3)])
                 score = x["score"]
                 curr_price = x["curr_price"]
                 curr_history = x["history"].split(",")
                 if random_percentage < score: # 가격 하락
                     curr_price -= random_price * random_multipler
-                    score -= random.randint(1, 5)
+                    score -= random.randint(1, 10)
                     curr_history.append(str(curr_price))
                 else: # 가격 상승
                     curr_price += random_price * random_multipler
-                    score += random.randint(1, 5)
+                    score += random.randint(1, 10)
                     curr_history.append(str(curr_price))
                 if len(curr_history) > 20:
                     del curr_history[0]

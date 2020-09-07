@@ -19,6 +19,7 @@ import discord
 import koreanbots
 import os
 import asyncio
+import typing
 from discord.ext import commands
 from modules import utils
 from modules.cilent import CustomClient
@@ -71,12 +72,12 @@ class Help(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.group(name="도움", description="봇의 도움말 명령어를 출력합니다.", aliases=["도움말", "help"])
-    async def help(self, ctx, tgt=None):
+    async def help(self, ctx):
         if ctx.invoked_subcommand is None:
-            if tgt:
+            """if tgt:
                 if tgt in cog_names.values():
                     return await self.help_by_category.__call__(ctx, tgt)
-                return await self.help_search.__call__(ctx, tgt)
+                return await self.help_search.__call__(ctx, tgt)"""
             base_embed = discord.Embed(title="명령어 리스트",
                                        description="한눈에 보는 명령어 리스트\n"
                                                    "자세한 명령어 정보는 `도움 카테고리 [카테고리 이름]` 또는 `도움 검색 [명령어 이름]`을 참고해주세요.\n"
@@ -93,7 +94,10 @@ class Help(commands.Cog):
 
     @help.command(name="카테고리")
     async def help_by_category(self, ctx, category_name: str):
-        base_embed = discord.Embed(title="명령어 리스트", description="카테고리별 명령어 리스트\n필수 항목은 [] 이고 꼭 채워야 합니다. 선택 항목은 () 이고 채우지 않아도 됩니다.", color=discord.Color.from_rgb(225, 225, 225))
+        base_embed = discord.Embed(title="명령어 리스트",
+                                   description="카테고리별 명령어 리스트\n"
+                                               "필수 항목은 [] 이고 꼭 채워야 합니다. 선택 항목은 () 이고 채우지 않아도 됩니다.",
+                                   color=discord.Color.from_rgb(225, 225, 225))
         if category_name not in cog_names.values():
             return await ctx.send(f"`{category_name}`은(는) 존재하지 않는 카테고리입니다.")
         selected = None
@@ -111,7 +115,9 @@ class Help(commands.Cog):
             if x.description is None:
                 continue
             curr_embed.add_field(name=x.name,
-                                 value=str(x.description)+"\n사용법: "+(str(x.usage) if x.usage else f"`{x.name}`")+"\n에일리어스: " + (', '.join(x.aliases) if bool(x.aliases) else "없음"),
+                                 value=f"{str(x.description)}\n"
+                                       f"사용법: "+(str(x.usage) if x.usage else f"`{x.name}`")+"\n"
+                                       f"에일리어스: " + (', '.join(x.aliases) if bool(x.aliases) else "없음"),
                                  inline=False)
             count += 1
         embed_list.append(curr_embed)

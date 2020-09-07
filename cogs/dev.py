@@ -120,7 +120,10 @@ class Dev(commands.Cog):
 
     @dev.command(name="eval", aliases=["이발"])
     async def eval(self, ctx, *, line: str):
-        res = eval(line)
+        if line.startswith("await "):
+            res = await eval(line.replace("await ", ""))
+        else:
+            res = eval(line)
         await ctx.send(res if res else "(결과 없음)")
 
     @dev.command(name="exec", aliases=["이색"])
