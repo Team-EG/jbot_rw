@@ -14,11 +14,7 @@ class Stock(commands.Cog):
         self.jbot_db_global = bot.jbot_db_global
 
     async def cog_check(self, ctx: commands.Context):
-        acc_list = await self.jbot_db_global.res_sql("""SELECT * FROM game WHERE user_id=?""", (ctx.author.id,))
-        if not bool(acc_list):
-            await ctx.send("계정이 존재하지 않습니다. 먼저 계정을 생성해주세요")
-            raise custom_errors.IgnoreThis
-        return True
+        return await utils.game_check(self.jbot_db_global, ctx)
 
     @commands.command(name="그래프")
     @commands.cooldown(1, 15, commands.BucketType.user)

@@ -17,6 +17,7 @@
 """
 import discord
 import asyncio
+from . import custom_errors
 from .cilent import CustomClient
 from discord.ext import commands
 
@@ -109,3 +110,13 @@ async def confirm(bot: CustomClient, ctx: commands.Context, msg: discord.Message
             return False
     except asyncio.TimeoutError:
         return None
+
+
+async def game_check(jbot_db_global, ctx):
+    if ctx.invoked_with in ["계정생성", "계정생선"]:
+        return True
+    acc_list = await jbot_db_global.res_sql("""SELECT * FROM game WHERE user_id=?""", (ctx.author.id,))
+    if not bool(acc_list):
+        await ctx.send("계정이 존재하지 않습니다. 먼저 계정을 생성해주세요")
+        raise custom_errors.IgnoreThis
+    return True
