@@ -272,7 +272,7 @@ class Music(commands.Cog):
         voice.resume()
         await ctx.send(f"{ctx.author.mention} 음악을 계속 재생합니다.")
 
-    @commands.command(name="강제연결해제", description="봇 오류로 음악 재생에 문제가 발생했을 때 강제로 접속을 해제합니다.", aliases=["나가", "제발나가", "quit", 'leave', 'l', "ㅣ"])
+    @commands.command(name="강제연결해제", description="봇 오류로 음악 재생에 문제가 발생했을 때 강제로 접속을 해제합니다.", aliases=["나가", "제발나가", "quit", 'leave', 'l', "ㅣ", "dc"])
     async def force_quit(self, ctx):
         voice = ctx.voice_client
         await voice.disconnect(force=True)
