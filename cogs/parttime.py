@@ -31,10 +31,15 @@ class PartTime(commands.Cog):
         await ctx.send(embed=embed)
 
     @part_time.command(name="편의점")
-    async def work_conv(self, ctx, debug=None):
+    async def work_conv(self, ctx, hard=None, debug=None):
         if debug:
-            if ctx.author not in [288302173912170497, 665450122926096395, 558323117802389514]:
+            if ctx.author.id not in [288302173912170497, 665450122926096395, 558323117802389514]:
                 raise custom_errors.NotWhitelisted
+        if bool(hard):
+            if hard == "어려움":
+                hard = True
+            else:
+                hard = False
         goods_list = {
             "커피": 2500,
             "과자": 1500,
@@ -43,11 +48,12 @@ class PartTime(commands.Cog):
             "컵라면": 800,
             "음료수": 1800
         }
-        help_embed = discord.Embed(title="편의점 알바", description="10초후 알바가 시작됩니다. 다음 가격표를 잘 보고 계산할 준비를 해주세요. 게임이 시작되면 가격표가 지워집니다.")
+        help_embed = discord.Embed(title="편의점 알바", description="10초 후 알바가 시작됩니다. 다음 가격표를 잘 보고 계산할 준비를 해주세요.")
         [help_embed.add_field(name=x, value=f"{y}원") for x, y in goods_list.items()]
         msg = await ctx.send(embed=help_embed)
         await asyncio.sleep(10)
-        await msg.delete()
+        if hard:
+            await msg.delete()
         for _x in range(random.randint(3, 10)):
             to_buy = []
             total_price = 0
@@ -81,8 +87,12 @@ class PartTime(commands.Cog):
                 return await ctx.send(embed=fail_embed)
         curr_money = (await self.jbot_db_global.res_sql("""SELECT money FROM game WHERE user_id=?""", (ctx.author.id,)))[0]["money"]
         curr_money += 8590
+        if hard:
+            curr_money += 10000
         await self.jbot_db_global.exec_sql("""UPDATE game SET money=? WHERE user_id=?""", (curr_money, ctx.author.id))
         success_embed = discord.Embed(title="편의점 알바 성공", description="알바를 성공적으로 마쳤습니다. `8590`원을 알바비로 얻었습니다.", color=discord.Color.green())
+        if hard:
+            success_embed.description += "\n열심히 일해서 보너스로 `10000`원이 추가되었습니다!"
         await ctx.send(embed=success_embed)
 
     @part_time.command(name="학원강사")
