@@ -16,16 +16,14 @@ async def get_youtube(url):
 def _get_youtube(url):
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         ydl.cache.remove()
-        if url.startswith("https://") or url.startswith("http://") or url.startswith("youtu.be") or url.startswith("youtube.com"):
-            dwld_url = url
-            song = ydl.extract_info(dwld_url, download=False)
-        else:
-            song = ydl.extract_info(f"ytsearch1:{url}", download=False)["entries"][0]
+        if not bool(url.startswith("https://") or url.startswith("http://") or url.startswith("youtu.be") or url.startswith("youtube.com")):
+            url = "ytsearch1:" + url
+        song = ydl.extract_info(url, download=False)["entries"][0]
         return song
 
 
 if __name__ == "__main__":
-    res = loop.run_until_complete(get_youtube("teminite monster"))
+    res = _get_youtube("teminite monster")
     print(res)
-    res = loop.run_until_complete(get_youtube("https://www.youtube.com/watch?v=1SAXBLZLYbA"))
+    res = _get_youtube("https://www.youtube.com/watch?v=1SAXBLZLYbA")
     print(res)
