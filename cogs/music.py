@@ -147,7 +147,7 @@ class Music(commands.Cog):
         vid_title = search_res["title"]
         vid_author = search_res["uploader"]
         vid_channel_url = search_res["uploader_url"]
-        tgt_url = search_res["formats"][0]["url"]
+        tgt_url = search_res["url"]
         thumb = search_res["thumbnail"]
         default_vol = 0.3
         embed.set_image(url=str(thumb))

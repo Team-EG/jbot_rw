@@ -185,6 +185,16 @@ class Utils(commands.Cog):
         embed = discord.Embed(title="제이봇 소스코드", description="[리라이트 버전](https://github.com/Team-EG/jbot_rw)\n[구버전](https://github.com/Team-EG/j-bot-old)", color=discord.Color.from_rgb(225, 225, 225))
         await ctx.send(embed=embed)
 
+    @commands.command(name="봇추천", description="")
+    async def recommend_bot(self, ctx):
+        link = "https://koreanbots.dev/bots/752354433106706452"
+        embed = discord.Embed(title="제이봇이 추천하는 봇은...",
+                              description=f"Team EG에서 개발한 다른 봇인 [K-Currencies]({link}) 봇을 사용해보세요!\n"
+                                          f"이 봇은 자신의 서버의 고유 화폐를 만들 수 있도록 도와주는 봇입니다.\n"
+                                          f"자세한 기능은 [링크]({link})를 통해 확인하세요!",
+                              color=discord.Color.green())
+        await ctx.send(embed=embed)
+
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         emoji = payload.emoji
