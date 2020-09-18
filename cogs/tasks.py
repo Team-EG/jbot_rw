@@ -66,14 +66,14 @@ class Tasks(commands.Cog):
             for x in stock:
                 if len(stock) == 0:
                     break
-                random_price = random.randint(0, 100)
+                random_price = random.randint(0, 60)
                 random_percentage = random.randint(1, 100)
                 random_multipler = random.choice([1, 1, 1, 1, random.randint(2, 3)])
                 score = x["score"]
                 curr_price = x["curr_price"]
                 curr_history = x["history"].split(",")
                 if random_percentage < score: # 가격 하락
-                    curr_price -= random_price * random_multipler
+                    curr_price -= random_price * random_multipler ** 2
                     score -= random.randint(1, 10)
                     curr_history.append(str(curr_price))
                 else: # 가격 상승

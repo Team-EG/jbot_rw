@@ -196,8 +196,7 @@ class Music(commands.Cog):
         voice_client.resume()
         await ctx.send("일시정지를 해제했어요.")
 
-    @commands.command(name="볼륨", description="음악의 볼륨을 조절합니다.", usage="`볼륨 [1~100]`",
-                      aliases=["volume", "vol", "v", "패ㅣㅕㅡㄷ", "ㅍ"])
+    @commands.command(name="볼륨", description="음악의 볼륨을 조절합니다.", usage="`볼륨 [1~100]`", aliases=["volume", "vol", "v", "패ㅣㅕㅡㄷ", "ㅍ"])
     async def volume(self, ctx: commands.Context, vol: int = None):
         voice_state = await self.voice_check(ctx, check_connected=True, check_paused=True)
         if voice_state[0] != 0:
