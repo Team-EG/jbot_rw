@@ -210,6 +210,48 @@ class Music(commands.Cog):
         voice_client.source.volume = vol / 100
         await ctx.send(f"볼륨을 {vol}%로 조정했어요.")
 
+    @commands.command(name='루프', description="재생중인 음악을 무한 반복하거나 무한 반복을 해제합니다.", aliases=["무한반복", "loop", "repeat"])
+    async def music_loop(self, ctx):
+        voice_state = await self.voice_check(ctx, check_connected=True)
+        if voice_state[0] != 0:
+            return await ctx.send(voice_state[1])
+        queue = self.queues[ctx.guild.id]
+        if queue["playing"]["loop"] is not True:
+            msg = await ctx.send(f"{ctx.author.mention} 정말로 이 음악을 무한반복할까요?")
+            res = await utils.confirm(self.bot, ctx, msg)
+            if res is not True:
+                return await msg.edit(content=f"{ctx.author.mention} 무한반복이 취소되었습니다.")
+            queue["playing"]["loop"] = True
+            return await msg.edit(content=f"{ctx.author.mention} 이 음악을 무한반복할께요!")
+        elif queue["playing"]["loop"] is True:
+            msg = await ctx.send(f"{ctx.author.mention} 정말로 무한반복을 해제할까요?")
+            res = await utils.confirm(self.bot, ctx, msg)
+            if res is not True:
+                return await msg.edit(content=f"{ctx.author.mention} 무한반복 해제가 취소되었습니다.")
+            queue["playing"]["loop"] = False
+            return await msg.edit(content=f"{ctx.author.mention} 무한반복이 해제되었습니다.")
+
+    @commands.command(name="셔플", description="대기 리스트에서 음악을 무작위로 재생합니다.", aliases=["랜덤", "random", "shuffle", "sf", "ㄶ", "ㄴㅎ"])
+    async def shuffle(self, ctx):
+        voice_state = await self.voice_check(ctx, check_connected=True)
+        if voice_state[0] != 0:
+            return await ctx.send(voice_state[1])
+        queue = self.queues[ctx.guild.id]
+        if queue["playing"]["random"] is not True:
+            msg = await ctx.send(f"{ctx.author.mention} 정말로 랜덤 재생 기능을 켤까요?")
+            res = await utils.confirm(self.bot, ctx, msg)
+            if res is not True:
+                return await msg.edit(content=f"{ctx.author.mention} 랜덤 재생이 취소되었습니다.")
+            queue["playing"]["random"] = True
+            return await msg.edit(content=f"{ctx.author.mention} 랜덤 재생이 켜졌어요!")
+        elif queue["playing"]["random"] is True:
+            msg = await ctx.send(f"{ctx.author.mention} 정말로 랜덤 재생을 해제할까요?")
+            res = await utils.confirm(self.bot, ctx, msg)
+            if res is not True:
+                return await msg.edit(content=f"{ctx.author.mention} 랜덤 재생 해제가 취소되었습니다.")
+            queue["playing"]["random"] = False
+            return await msg.edit(content=f"{ctx.author.mention} 랜덤 재생이 해제되었습니다.")
+
     @commands.command(name="대기열", description="현재 음악 대기열을 보여줍니다.", aliases=["재생리스트", "pl", "ql", "queuelist", "playlist", "비", "ㅔㅣ"])
     async def queue_list(self, ctx: commands.Context):
         if ctx.guild.id not in self.queues.keys():
