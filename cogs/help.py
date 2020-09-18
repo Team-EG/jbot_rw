@@ -19,7 +19,6 @@ import discord
 import koreanbots
 import os
 import asyncio
-import typing
 from discord.ext import commands
 from modules import utils
 from modules.cilent import CustomClient
@@ -43,6 +42,7 @@ cog_names = {
     "PartTime": "알바"
 }
 prohibited_cogs = ["Dev", "Error", "Tasks", "EasterEgg", "ServerLog", "Spam"]
+loop = asyncio.get_event_loop()
 
 
 class Help(commands.Cog):
@@ -50,6 +50,15 @@ class Help(commands.Cog):
         self.bot = bot
         self.koreanbots = bot.koreanbots
         self.sent_users = []
+        self.task = loop.create_task(self.__clr_sent())
+
+    async def __clr_sent(self):
+        while True:
+            self.sent_users = []
+            await asyncio.sleep(60*15)
+
+    def cog_unload(self):
+        self.task.cancel()
 
     async def cog_after_invoke(self, ctx):
         if ctx.author.id in self.sent_users:
@@ -68,7 +77,7 @@ class Help(commands.Cog):
                               description="도움말은 잘 보셨나요? 도움말을 보시는 동안 잠깐 확인해봤는데 아직 코리안봇에서 제이봇에게 하트를 누르지 않으셨네요...\n"
                                           "지금 [여기를 눌러서](https://koreanbots.dev/bots/622710354836717580) 제이봇에게 하트를 눌러주세요!\n"
                                           "잠깐만 시간을 내서 눌러주신다면 개발자에게 조금이지만 도움이 됩니다.",
-                              color=discord.Color.red())
+                              color=discord.Color.red()).set_footer(text="하트를 눌러주시면 이 메시지가 더이상 나오지 않습니다.")
         await ctx.send(embed=embed)
 
     @commands.group(name="도움", description="봇의 도움말 명령어를 출력합니다.", aliases=["도움말", "help"])

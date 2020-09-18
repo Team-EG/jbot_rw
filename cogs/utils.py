@@ -210,7 +210,7 @@ class Utils(commands.Cog):
         if bool(msg_data[0]["posted"]):
             return
         await self.jbot_db_global.exec_sql("UPDATE starboard SET count=? WHERE msg_id=?", (count, payload.message_id))
-        if count == 3 or bool(str(emoji) == "⭐" and payload.member.id == payload.member.guild.owner.id):
+        if count == 3 or bool(str(emoji) == "⭐" and (payload.member.guild_permissions.administrator or payload.member.id == payload.member.guild.owner.id)):
             guild = self.bot.get_guild(payload.guild_id)
             await self.jbot_db_global.exec_sql("UPDATE starboard SET posted=? WHERE msg_id=?", (1, payload.message_id))
             guild_setup = await self.jbot_db_global.res_sql("SELECT starboard_channel FROM guild_setup WHERE guild_id=?", (payload.guild_id,))

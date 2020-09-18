@@ -45,12 +45,14 @@ class Dev(commands.Cog):
         if not ctx.author.id == 288302173912170497:
             return
         data = await self.jbot_db_global.res_sql("SELECT guild_id, announcement FROM guild_setup")
+        embed = discord.Embed(title='제이봇 공지', colour=discord.Color.red(), timestamp=ctx.message.created_at)
+        embed.set_footer(text=str(ctx.author.name), icon_url=ctx.author.avatar_url)
+        embed.set_thumbnail(url=self.bot.user.avatar_url)
+        embed.add_field(name=str(t),
+                        value=str(ann) + "\n\n도움이 필요하신가요?\n[Team EG 디스코드 서버로 바로 가기](https://discord.gg/gqJBhar)",
+                        inline=False)
         for x in data:
             try:
-                embed = discord.Embed(title='제이봇 공지', colour=discord.Color.red(), timestamp=ctx.message.created_at)
-                embed.set_footer(text=str(ctx.author.name), icon_url=ctx.author.avatar_url)
-                embed.set_thumbnail(url=self.bot.user.avatar_url)
-                embed.add_field(name=str(t), value=str(ann)+"\n\n[제이봇 실험실로 바로 가기](https://discord.gg/nJuW3Xs)", inline=False)
                 if x["announcement"] is not None:
                     v = x["announcement"]
                     target_channel = self.bot.get_guild(x["guild_id"]).get_channel(v)
@@ -105,11 +107,6 @@ class Dev(commands.Cog):
         embed.add_field(name="업타임", value=f"서버: {uptime_sys}\n봇: {uptime_bot}")
         #embed.add_field(name="온도", value=str(temp))
         await ctx.send(embed=embed)
-
-    @dev.command(name="DB테이블확인")
-    async def check_table_exist(self, ctx, db_name, table_name):
-        res = None # await sdb.check_if_table_exist(db_name, table_name)
-        await ctx.send(res)
 
     @dev.command(name="임시폴더리셋")
     async def temp_reset(self, ctx):

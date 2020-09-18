@@ -204,6 +204,6 @@ async def _close(ctx):
     await bot.close()
 
 
-[bot.load_extension(f"cogs.{x.replace('.py', '')}") for x in os.listdir("./cogs") if x.endswith('.py')]
+[bot.load_extension(f"cogs.{x.replace('.py', '')}") for x in os.listdir("./cogs") if x.endswith('.py') and not x.startswith("_")]
 
 bot.run_bot(canary=True)

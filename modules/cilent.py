@@ -20,7 +20,7 @@ class CustomClient(commands.AutoShardedBot):
         self.last_stock_change = 0
 
     def run_bot(self, canary=False):
-        if canary is True:
+        if canary:
             self.run(self.__canary_token)
         else:
             self.run(self.__stable_token)
