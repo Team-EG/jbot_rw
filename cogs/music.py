@@ -39,15 +39,21 @@ class Music(commands.Cog):
                 if voice_client.is_playing():
                     voice_client.stop()
                 break
-            if not voice_client.is_playing() and not voice_client.is_paused() and len(self.queues[ctx.guild.id]) <= 1:
+            try:
+                is_loop = bool(self.queues[ctx.guild.id]["playing"]["loop"])
+                is_shuffle = bool(self.queues[ctx.guild.id]["playing"]["random"])
+            except KeyError:
+                is_loop = False
+                is_shuffle = False
+            if not voice_client.is_playing() and not voice_client.is_paused() and (not is_loop and len(self.queues[ctx.guild.id]) <= 1):
                 break
             if voice_client.is_playing() or voice_client.is_paused():
                 await asyncio.sleep(1)
                 continue
-            is_loop = self.queues[ctx.guild.id]["playing"]["loop"]
-            is_shuffle = self.queues[ctx.guild.id]["playing"]["random"]
-            song_id_list = sorted([x for x in self.queues[ctx.guild.id].keys() if x != "playing"])
-            next_song_id = (song_id_list[0] if not is_shuffle else random.choice(song_id_list)) if not is_loop else self.queues[ctx.guild.id]["playing"]
+            print(self.queues)
+            song_id_list = [x for x in self.queues[ctx.guild.id].keys() if x != "playing"]
+            next_song_id = (sorted(song_id_list)[0] if not is_shuffle else random.choice(song_id_list)) if not is_loop else "playing"
+            print(next_song_id)
             next_song = self.queues[ctx.guild.id][next_song_id].copy()
             embed = discord.Embed(title="유튜브 음악 재생 - 재생 시작",
                                   description=f"업로더: [`{next_song['vid_author']}`]({next_song['vid_channel_url']})\n"
@@ -65,7 +71,7 @@ class Music(commands.Cog):
             if not is_loop:
                 for k, v in next_song.items():
                     self.queues[ctx.guild.id]["playing"][k] = v
-            del self.queues[ctx.guild.id][next_song_id]
+                del self.queues[ctx.guild.id][next_song_id]
 
             await asyncio.sleep(1)
 
@@ -153,8 +159,8 @@ class Music(commands.Cog):
         if not voice_client.is_playing():
             vol = 0.3
             to_add["vol"] = vol
-            to_add["loop"] = False
-            to_add["random"] = False
+            to_add["loop"] = 0
+            to_add["random"] = 0
             voice_client.play(discord.FFmpegPCMAudio(res.tgt_url, before_options=get_youtube.before_args))
             voice_client.source = discord.PCMVolumeTransformer(voice_client.source)
             voice_client.source.volume = vol
@@ -216,19 +222,19 @@ class Music(commands.Cog):
         if voice_state[0] != 0:
             return await ctx.send(voice_state[1])
         queue = self.queues[ctx.guild.id]
-        if queue["playing"]["loop"] is not True:
+        if not bool(queue["playing"]["loop"]):
             msg = await ctx.send(f"{ctx.author.mention} 정말로 이 음악을 무한반복할까요?")
             res = await utils.confirm(self.bot, ctx, msg)
-            if res is not True:
+            if not res:
                 return await msg.edit(content=f"{ctx.author.mention} 무한반복이 취소되었습니다.")
-            queue["playing"]["loop"] = True
+            queue["playing"]["loop"] = 1
             return await msg.edit(content=f"{ctx.author.mention} 이 음악을 무한반복할께요!")
-        elif queue["playing"]["loop"] is True:
+        elif bool(queue["playing"]["loop"]):
             msg = await ctx.send(f"{ctx.author.mention} 정말로 무한반복을 해제할까요?")
             res = await utils.confirm(self.bot, ctx, msg)
-            if res is not True:
+            if not res:
                 return await msg.edit(content=f"{ctx.author.mention} 무한반복 해제가 취소되었습니다.")
-            queue["playing"]["loop"] = False
+            queue["playing"]["loop"] = 0
             return await msg.edit(content=f"{ctx.author.mention} 무한반복이 해제되었습니다.")
 
     @commands.command(name="셔플", description="대기 리스트에서 음악을 무작위로 재생합니다.", aliases=["랜덤", "random", "shuffle", "sf", "ㄶ", "ㄴㅎ"])
@@ -237,19 +243,19 @@ class Music(commands.Cog):
         if voice_state[0] != 0:
             return await ctx.send(voice_state[1])
         queue = self.queues[ctx.guild.id]
-        if queue["playing"]["random"] is not True:
+        if not bool(queue["playing"]["random"]):
             msg = await ctx.send(f"{ctx.author.mention} 정말로 랜덤 재생 기능을 켤까요?")
             res = await utils.confirm(self.bot, ctx, msg)
-            if res is not True:
+            if not res:
                 return await msg.edit(content=f"{ctx.author.mention} 랜덤 재생이 취소되었습니다.")
-            queue["playing"]["random"] = True
+            queue["playing"]["random"] = 1
             return await msg.edit(content=f"{ctx.author.mention} 랜덤 재생이 켜졌어요!")
-        elif queue["playing"]["random"] is True:
+        elif bool(queue["playing"]["random"]):
             msg = await ctx.send(f"{ctx.author.mention} 정말로 랜덤 재생을 해제할까요?")
             res = await utils.confirm(self.bot, ctx, msg)
-            if res is not True:
+            if not res:
                 return await msg.edit(content=f"{ctx.author.mention} 랜덤 재생 해제가 취소되었습니다.")
-            queue["playing"]["random"] = False
+            queue["playing"]["random"] = 0
             return await msg.edit(content=f"{ctx.author.mention} 랜덤 재생이 해제되었습니다.")
 
     @commands.command(name="대기열", description="현재 음악 대기열을 보여줍니다.", aliases=["재생리스트", "pl", "ql", "queuelist", "playlist", "비", "ㅔㅣ"])
@@ -442,8 +448,8 @@ class Music(commands.Cog):
             }
             if key_to_use == "playing":
                 to_add["vol"] = vol
-                to_add["loop"] = False
-                to_add["random"] = False
+                to_add["loop"] = 0
+                to_add["random"] = 0
             self.queues[ctx.guild.id][key_to_use] = to_add
         finished_embed = discord.Embed(title="재생목록 재생",
                                        description=f"`{'`, `'.join([x['title'] for x in playlist_list])}`을(를) 대기열에 추가했어요!",
@@ -455,7 +461,6 @@ class Music(commands.Cog):
             voice_client.play(discord.FFmpegPCMAudio(to_play["tgt_url"], before_options=get_youtube.before_args))
             voice_client.source = discord.PCMVolumeTransformer(voice_client.source)
             voice_client.source.volume = vol
-            asyncio.create_task(self.queue_task(ctx, voice_client))
             run_embed = discord.Embed(title="유튜브 음악 재생 - 재생 시작",
                                       description=f"업로더: [`{to_play['vid_author']}`]({to_play['vid_channel_url']})\n"
                                                   f"제목: [`{to_play['vid_title']}`]({to_play['vid_url']})",
@@ -464,6 +469,7 @@ class Music(commands.Cog):
             run_embed.set_footer(text=str(to_play['req_by']), icon_url=to_play['req_by'].avatar_url)
             run_embed.set_image(url=to_play['thumb'])
             await ctx.send(embed=run_embed)
+            await asyncio.create_task(self.queue_task(ctx, voice_client))
 
 
 def setup(bot):
