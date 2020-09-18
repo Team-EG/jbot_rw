@@ -34,6 +34,7 @@ class Music(commands.Cog):
         self.queues = {}
 
     async def queue_task(self, ctx: commands.Context, voice_client: discord.VoiceClient):
+        # 왜인지는 모르겠는데 매우 불안정하네요.
         while voice_client.is_connected():
             if ctx.guild.id not in self.queues.keys():
                 if voice_client.is_playing():
@@ -469,7 +470,7 @@ class Music(commands.Cog):
             run_embed.set_footer(text=str(to_play['req_by']), icon_url=to_play['req_by'].avatar_url)
             run_embed.set_image(url=to_play['thumb'])
             await ctx.send(embed=run_embed)
-            await asyncio.create_task(self.queue_task(ctx, voice_client))
+            asyncio.create_task(self.queue_task(ctx, voice_client))
 
 
 def setup(bot):
