@@ -19,6 +19,7 @@ import discord
 import asyncio
 import time
 import random
+import datetime
 from discord.ext import commands
 from modules import utils
 from modules import get_youtube
@@ -60,7 +61,7 @@ class Music(commands.Cog):
                                   description=f"업로더: [`{next_song['vid_author']}`]({next_song['vid_channel_url']})\n"
                                               f"제목: [`{next_song['vid_title']}`]({next_song['vid_url']})",
                                   color=discord.Color.red(),
-                                  timestamp=ctx.message.created_at)
+                                  timestamp=datetime.datetime.now())
             embed.set_footer(text=str(next_song['req_by']), icon_url=next_song['req_by'].avatar_url)
             embed.set_image(url=next_song['thumb'])
             voice_client.play(discord.FFmpegPCMAudio(next_song["tgt_url"], before_options=get_youtube.before_args))
@@ -170,11 +171,13 @@ class Music(commands.Cog):
         await msg.edit(embed=embed)
         self.queues[ctx.guild.id][to_add_name] = to_add
 
-    @commands.command(name="스킵", description="재생중인 음악을 스킵합니다.", aliases=["s", "skip", "ㄴ"])
-    async def skip(self, ctx: commands.Context):
+    @commands.command(name="스킵", description="재생중인 음악을 스킵합니다.", usage="`스킵 (스킵할 번호)`", aliases=["s", "skip", "ㄴ"])
+    async def skip(self, ctx: commands.Context, to_skip=None):
         voice_state = await self.voice_check(ctx, check_connected=True, check_playing=True)
         if voice_state[0] != 0:
             return await ctx.send(voice_state[1])
+        if bool(to_skip):
+            return
         voice_client: discord.VoiceClient = ctx.voice_client
         voice_client.stop()
 
@@ -205,7 +208,7 @@ class Music(commands.Cog):
 
     @commands.command(name="볼륨", description="음악의 볼륨을 조절합니다.", usage="`볼륨 [1~100]`", aliases=["volume", "vol", "v", "패ㅣㅕㅡㄷ", "ㅍ"])
     async def volume(self, ctx: commands.Context, vol: int = None):
-        voice_state = await self.voice_check(ctx, check_connected=True, check_paused=True)
+        voice_state = await self.voice_check(ctx, check_connected=True, check_playing=True)
         if voice_state[0] != 0:
             return await ctx.send(voice_state[1])
         current_voice = self.queues[ctx.guild.id]["playing"]["vol"]
