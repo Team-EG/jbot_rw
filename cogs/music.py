@@ -61,7 +61,7 @@ class Music(commands.Cog):
                                   description=f"업로더: [`{next_song['vid_author']}`]({next_song['vid_channel_url']})\n"
                                               f"제목: [`{next_song['vid_title']}`]({next_song['vid_url']})",
                                   color=discord.Color.red(),
-                                  timestamp=datetime.datetime.now())
+                                  timestamp=datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=9))))
             embed.set_footer(text=str(next_song['req_by']), icon_url=next_song['req_by'].avatar_url)
             embed.set_image(url=next_song['thumb'])
             voice_client.play(discord.FFmpegPCMAudio(next_song["tgt_url"], before_options=get_youtube.before_args))
@@ -172,7 +172,7 @@ class Music(commands.Cog):
         self.queues[ctx.guild.id][to_add_name] = to_add
 
     @commands.command(name="스킵", description="재생중인 음악을 스킵합니다.", usage="`스킵 (스킵할 번호)`", aliases=["s", "skip", "ㄴ"])
-    async def skip(self, ctx: commands.Context, to_skip=None):
+    async def skip(self, ctx: commands.Context, to_skip: int = None):
         voice_state = await self.voice_check(ctx, check_connected=True, check_playing=True)
         if voice_state[0] != 0:
             return await ctx.send(voice_state[1])
