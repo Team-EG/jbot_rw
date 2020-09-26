@@ -177,7 +177,19 @@ class Music(commands.Cog):
         if voice_state[0] != 0:
             return await ctx.send(voice_state[1])
         if bool(to_skip):
-            return
+            queue_list = self.queues[ctx.guild.id]
+            try:
+                selected_key = [x for x in queue_list.keys()][to_skip]
+            except IndexError:
+                return await ctx.send("대기열에 해당 번호가 없네요...")
+            embed = discord.Embed(title=f"정말로 '{queue_list[selected_key]['vid_title']}' 음악을 대기열에서 삭제할까요?",
+                                  color=discord.Color.from_rgb(225, 225, 225))
+            msg = await ctx.send(embed=embed)
+            res = await utils.confirm(self.bot, ctx=ctx, msg=msg)
+            if res:
+                del queue_list[selected_key]
+                return await msg.edit(embed=discord.Embed(title="해당 음악을 대기열에서 삭제했어요.", color=discord.Color.green()))
+            return await msg.edit(embed=discord.Embed(title="대기열 음악 삭제가 취소되었습니다.", color=discord.Color.red()))
         voice_client: discord.VoiceClient = ctx.voice_client
         voice_client.stop()
 
