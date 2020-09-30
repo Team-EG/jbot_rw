@@ -10,8 +10,9 @@ class CustomClient(commands.AutoShardedBot):
         with open("bot_settings.json", "r") as f:
             bot_settings = json.load(f)
             token = bot_settings["koreanbots_token"]
+            debug = bot_settings["debug"]
         super().__init__(*args, **kwargs)
-        self.koreanbots = koreanbots.Client(self, token, postCount=False)
+        self.koreanbots = koreanbots.Client(self, token, postCount=False if debug else True)
         self.jbot_db_global = jbot_db.JBotDB("jbot_db_global")
         self.jbot_db_warns = jbot_db.JBotDB("jbot_db_warns")
         self.jbot_db_level = jbot_db.JBotDB("jbot_db_level")

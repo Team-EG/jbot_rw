@@ -196,6 +196,11 @@ async def _new_cog(ctx):
 @bot.command(name="종료")
 @commands.is_owner()
 async def _close(ctx):
+    cogs = dict(bot.cogs)
+    tgt_cog = cogs["Music"]
+    print(tgt_cog.queues)
+    if len(tgt_cog.queues) > 0:
+        return await ctx.send("아직 끝나지 않은 음악 대기열이 있습니다.")
     await ctx.send("봇을 종료합니다.")
     [bot.unload_extension(f"cogs.{x.replace('.py', '')}") for x in os.listdir("./cogs") if x.endswith('.py')]
     await bot.jbot_db_global.close_db()
