@@ -70,11 +70,13 @@ class GuildSetup(commands.Cog):
     async def settings(self, ctx):
         if ctx.invoked_subcommand is None:
             guild_data = (await self.jbot_db_global.res_sql("SELECT * FROM guild_setup WHERE guild_id=?", (ctx.guild.id,)))[0]
+            prohibited = ["prefix", "talk_prefix", "greet", "bye", "greetpm", "log_channel",
+                          "announcement", "welcome_channel", "mute_role", "starboard_channel"]
             for x in guild_data.keys():
                 if guild_data[x] is None:
                     guild_data[x] = "없음"
-                elif len(str(guild_data[x])) != 1:
-                    pass
+                elif x in prohibited:
+                    continue
                 elif bool(guild_data[x]) is False:
                     guild_data[x] = "아니요"
                 elif bool(guild_data[x]) is True:
