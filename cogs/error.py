@@ -47,7 +47,7 @@ class Error(commands.Cog):
             embed.add_field(name="CheckFailure", value="이 서버에서는 해당 명령어를 사용할 수 없도록 설정되어있습니다.")
         elif isinstance(error, commands.CommandOnCooldown):
             cooldown = int(f"{error.retry_after}".split(".")[0])
-            embed.add_field(name="CommandOnCooldown", value=f'쿨다운이 아직 {utils.parse_second(cooldown)} 남았습니다.')
+            embed.add_field(name="CommandOnCooldown", value=f'쿨다운이 아직 `{utils.parse_second(cooldown)}` 남았습니다.')
         elif isinstance(error, commands.MissingRequiredArgument):
             embed.add_field(name="MissingRequiredArgument", value=f"누락된 필수 항목이 있습니다. (`{error.param.name}`)")
         elif isinstance(error, custom_errors.NotWhitelisted):
@@ -68,8 +68,10 @@ class Error(commands.Cog):
         else:
             logger = logging.getLogger("discord")
             logger.error(error)
-            embed.add_field(name="예기치 않은 오류 발생", value=f"```py\n{error}```\n이 오류 정보를 개발자에게 알려주시면 봇 개선에 도움이 됩니다. [이 링크를 통해 알려주세요.](https://discord.gg/gqJBhar)")
-        await ctx.message.add_reaction("⚠")
+            embed.add_field(name="예기치 않은 오류 발생",
+                            value=f"```py\n{error}```\n"
+                                  f"이 오류 정보를 개발자에게 알려주시면 봇 개선에 도움이 됩니다. [이 링크를 통해 알려주세요.](https://discord.gg/gqJBhar)")
+        await ctx.message.add_reaction("⏰") if isinstance(error, commands.CommandOnCooldown) else await ctx.message.add_reaction("⚠")
         await ctx.send(embed=embed)
 
 

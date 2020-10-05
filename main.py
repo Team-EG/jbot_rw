@@ -209,6 +209,19 @@ async def _close(ctx):
     await bot.close()
 
 
+@_close.error()
+async def on_close_error(ctx, error):
+    if isinstance(error, commands.NotOwner):
+        return await ctx.send("이 명령어는 봇 소유자(eunwoo1104#9600)만 사용이 가능합니다.")
+    else:
+        embed = discord.Embed(title="오류 발생!", description="명령어를 실행하던 도중 오류가 발생했습니다.", colour=discord.Color.red())
+        embed.add_field(name="예기치 않은 오류 발생",
+                        value=f"```py\n{error}```\n"
+                              f"이 오류 정보를 개발자에게 알려주시면 봇 개선에 도움이 됩니다. [이 링크를 통해 알려주세요.](https://discord.gg/gqJBhar)")
+        await ctx.message.add_reaction("⚠")
+        await ctx.send(embed=embed)
+
+
 [bot.load_extension(f"cogs.{x.replace('.py', '')}") for x in os.listdir("./cogs") if x.endswith('.py') and not x.startswith("_")]
 
 bot.run_bot(canary=True)
