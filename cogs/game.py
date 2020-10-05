@@ -116,14 +116,14 @@ class Game(commands.Cog):
                               color=discord.Color.red())
         await ctx.send(embed=embed)
 
-    @commands.command(name="용돈", description="용돈을 얻습니다.")
+    @commands.command(name="용돈", description="용돈을 얻습니다.", aliases=["돈내놔", "돈주세요"])
     @commands.cooldown(1, 60*10, commands.BucketType.user)
-    async def work(self, ctx):
+    async def give_me_money(self, ctx):
         money = (await self.jbot_db_global.res_sql("""SELECT money FROM game WHERE user_id=?""", (ctx.author.id,)))[0]["money"]
         to_add = random.randint(1000, 10000)
         money += to_add
         await self.jbot_db_global.exec_sql("""UPDATE game SET money=? WHERE user_id=?""", (money, ctx.author.id))
-        embed = discord.Embed(title="알바 완료", description=f"용돈 `{to_add}`원을 얻었습니다.\n현재 당신의 지갑에는 `{money}`원이 있습니다.", color=discord.Color.red())
+        embed = discord.Embed(title="용돈 받음", description=f"용돈 `{to_add}`원을 얻었습니다.\n현재 당신의 지갑에는 `{money}`원이 있습니다.", color=discord.Color.from_rgb(225, 225, 225))
         await ctx.send(embed=embed)
 
     @commands.command(name="지갑", description="자신 또는 해당 유저의 계정을 보여줍니다.", usage="`지갑 (유저)`", aliases=["계정"])
