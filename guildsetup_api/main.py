@@ -5,7 +5,6 @@ import discord
 import threading
 import json
 import asyncio
-import time
 
 app = flask.Flask(__name__)
 app.config['JSON_AS_ASCII'] = False

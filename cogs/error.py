@@ -47,7 +47,9 @@ class Error(commands.Cog):
             embed.add_field(name="CheckFailure", value="이 서버에서는 해당 명령어를 사용할 수 없도록 설정되어있습니다.")
         elif isinstance(error, commands.CommandOnCooldown):
             cooldown = int(f"{error.retry_after}".split(".")[0])
-            embed.add_field(name="CommandOnCooldown", value=f'쿨다운이 아직 `{utils.parse_second(cooldown)}` 남았습니다.')
+            # embed.add_field(name="CommandOnCooldown", value=f'쿨다운이 아직 `{utils.parse_second(cooldown)}` 남았습니다.')
+            embed.title = "이런! 아직 쿨다운이 남았어요..."
+            embed.description = f"남은 시간: `{utils.parse_second(cooldown)}`"
         elif isinstance(error, commands.MissingRequiredArgument):
             embed.add_field(name="MissingRequiredArgument", value=f"누락된 필수 항목이 있습니다. (`{error.param.name}`)")
         elif isinstance(error, custom_errors.NotWhitelisted):
