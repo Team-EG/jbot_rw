@@ -21,6 +21,7 @@ import json
 from discord.ext import commands
 from modules import custom_errors
 from modules import admin
+from modules import utils
 from modules.cilent import CustomClient
 
 loop = asyncio.get_event_loop()
@@ -35,6 +36,15 @@ class GuildSetup(commands.Cog):
     async def cog_check(self, ctx):
         if ctx.author.guild_permissions.administrator or ctx.author == ctx.guild.owner:
             return True
+        if ctx.author.id in [288302173912170497]:
+            embed = discord.Embed(title="디버깅 목적으로 명령어 사용을 허용할까요?",
+                                  description="서버 설정 명령어를 사용할 경우 서버 소유자가 공개를 원하지 않는 정보가 나올 수도 있습니다.\n"
+                                              "꼭 디버깅 목적으로만 사용해주세요.")
+            msg = await ctx.send(embed=embed)
+            resp = await utils.confirm(self.bot, ctx, msg)
+            await msg.delete()
+            if resp:
+                return True
         raise custom_errors.NotGuildOwner
 
     @commands.Cog.listener()
