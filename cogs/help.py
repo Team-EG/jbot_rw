@@ -81,12 +81,18 @@ class Help(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.group(name="도움", description="봇의 도움말 명령어를 출력합니다.", aliases=["도움말", "help"])
-    async def help(self, ctx):
+    async def help(self, ctx, tgt: str = None, cmd_name: str = None):
         if ctx.invoked_subcommand is None:
-            """if tgt:
+            if tgt == "카테고리":
+                return await self.help_by_category.__call__(ctx, cmd_name)
+            if tgt == "검색":
+                return await self.help_search.__call__(ctx, cmd_name)
+            if tgt == "가이드":
+                return await self.help_guide.__call__(ctx)
+            if tgt:
                 if tgt in cog_names.values():
                     return await self.help_by_category.__call__(ctx, tgt)
-                return await self.help_search.__call__(ctx, tgt)"""
+                return await self.help_search.__call__(ctx, tgt)
             base_embed = discord.Embed(title="명령어 리스트",
                                        description="한눈에 보는 명령어 리스트\n"
                                                    "자세한 명령어 정보는 `도움 카테고리 [카테고리 이름]` 또는 `도움 검색 [명령어 이름]`을 참고해주세요.\n"
