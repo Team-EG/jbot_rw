@@ -63,7 +63,7 @@ async def get_prefix(bot, message):
     return commands.when_mentioned_or(*['제이봇 ', 'j!', guild_prefix])(bot, message)
 
 
-bot = CustomClient(command_prefix=get_prefix, help_command=None)
+bot = CustomClient(command_prefix=get_prefix, help_command=None, allowed_mentions=discord.AllowedMentions(everyone=False))
 
 
 async def is_whitelisted(ctx):
@@ -209,7 +209,7 @@ async def _close(ctx):
     await bot.close()
 
 
-@_close.error()
+@_close.error
 async def on_close_error(ctx, error):
     if isinstance(error, commands.NotOwner):
         return await ctx.send("이 명령어는 봇 소유자(eunwoo1104#9600)만 사용이 가능합니다.")

@@ -22,6 +22,7 @@ import os
 import datetime
 import asyncio
 from discord.ext import commands
+from modules import utils
 from modules import custom_errors
 from modules.cilent import CustomClient
 
@@ -86,11 +87,20 @@ class Dev(commands.Cog):
 
     @dev.command(name="길드리스트")
     async def get_guild_list(self, ctx):
-        guild_list = self.bot.guilds
-        embed = discord.Embed(title="제이봇 길드 리스트", description=str(len(guild_list))+" 개")
-        for x in guild_list:
+        base_embed = discord.Embed(title="제이봇 길드 리스트", description=str(len(self.bot.guilds))+" 개")
+        embed = base_embed.copy()
+        embed_list = []
+        count = 0
+        for x in self.bot.guilds:
+            if count != 0 and count % 9 == 0:
+                embed_list.append(embed)
+                embed = base_embed.copy()
             embed.add_field(name=x.name, value=f"소유자: {x.owner}\n유저수: {len(x.members)}")
-        await ctx.send(embed=embed)
+            count += 1
+        embed_list.append(embed)
+        if len(embed_list) <= 1:
+            return await ctx.send(embed=embed)
+        await utils.start_page(self.bot, ctx, embed_list, embed=True)
 
     @dev.command(name="서버상태")
     async def check_server(self, ctx):

@@ -19,10 +19,12 @@ import discord
 import psutil
 import datetime
 import os
+import json
 import random
 import platform
 from discord.ext import commands
 from modules import utils
+from modules.graphql import GraphQL
 
 
 class Utils(commands.Cog):
@@ -194,6 +196,29 @@ class Utils(commands.Cog):
                                           f"자세한 기능은 [링크]({link})를 통해 확인하세요!",
                               color=discord.Color.green())
         await ctx.send(embed=embed)
+
+    @commands.command(name="그래프QL", description="그래프QL 쿼리를 만들어줍니다.", aliases=["graphql", "GraphQL"])
+    async def graphql(self, ctx, qom: str, to_req: str, *, args: str):
+        if qom not in ["query", "mutation"]:
+            return await ctx.send("잘못된 입력값입니다.")
+        params = ""
+        for x in list(args):
+            params += x
+            if x == "}":
+                break
+        args = args.replace(params, "")
+        args = args.split()
+        try:
+            params = json.loads(params)
+        except json.JSONDecodeError:
+            return await ctx.send("잘못된 입력값입니다.")
+        if qom == "query":
+            query = GraphQL.build_query(to_req, params=params, to_request=list(args))
+        elif qom == "mutation":
+            query = GraphQL.build_mutation(to_req, params=params, to_request=list(args))
+        else:
+            return await ctx.send("잘못된 입력값입니다.")
+        await ctx.send(f"```\n{query}\n```")
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
