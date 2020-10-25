@@ -294,7 +294,10 @@ class ServerLog(commands.Cog):
     async def on_raw_reaction_clear(self, payload):
         guild = self.bot.get_guild(payload.guild_id)
         channel = guild.get_channel(payload.channel_id)
-        msg = await channel.fetch_message(payload.message_id)
+        try:
+            msg = await channel.fetch_message(payload.message_id)
+        except discord.NotFound:
+            return
         embed = discord.Embed(title="모든 반응 제거됨", description=f"[해당 메시지로 바로가기]({msg.jump_url})", color=discord.Colour.red())
         embed.set_author(name=guild.name, icon_url=guild.icon_url)
         await admin.send_to_log(self.jbot_db_global, guild, embed)
