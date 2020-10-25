@@ -120,3 +120,63 @@ async def game_check(jbot_db_global, ctx):
         await ctx.send("계정이 존재하지 않습니다. 먼저 계정을 생성해주세요")
         raise custom_errors.IgnoreThis
     return True
+
+
+async def safe_clear(msg: discord.Message, emojis: list):
+    try:
+        await msg.clear_reactions()
+    except discord.Forbidden:
+        [await msg.remove_reaction(x, msg.author) for x in emojis]
+
+
+async def start_cursor(bot, ctx, lists: list, embed: discord.Embed, time: int = 30):
+    up = "⬆"
+    down = "⬇"
+    load = "⏺"
+    stop = "⏹"
+    emoji_list = [up, down, load, stop]
+    msg = await ctx.send("잠시만 기다려주세요...")
+    for x in emoji_list:
+        await msg.add_reaction(x)
+    selected = lists[0]
+    selected_num = 0
+
+    def check(reaction, user):
+        return user == ctx.author and str(reaction) in emoji_list and reaction.message.id == msg.id
+
+    global reaction
+    while True:
+        tgt_embed = embed.copy()
+        init_num = 1
+        for k in lists:
+            if k == selected:
+                k = "▶" + k
+            tgt_embed.add_field(name=f"{init_num}", value=k, inline=False)
+            init_num += 1
+        await msg.edit(content=None, embed=tgt_embed)
+        try:
+            reaction, user = await bot.wait_for("reaction_add", check=check, timeout=time)
+        except asyncio.TimeoutError:
+            await safe_clear(msg, emoji_list)
+            return msg, None
+
+        if str(reaction) == down:
+            if selected_num + 1 == len(lists):
+                selected_num = 0
+                selected = lists[0]
+            else:
+                selected_num += 1
+                selected = lists[selected_num]
+        elif str(reaction) == up:
+            if selected_num == 0:
+                selected_num = len(lists)
+                selected = lists[-1][0]
+            else:
+                selected_num -= 1
+                selected = lists[selected_num]
+        elif str(reaction) == stop:
+            await safe_clear(msg, emoji_list)
+            return msg, None
+        elif str(reaction) == load:
+            await safe_clear(msg, emoji_list)
+            return msg, selected_num

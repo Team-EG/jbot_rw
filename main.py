@@ -17,7 +17,6 @@
 """
 import asyncio
 import discord
-import json
 import os
 import logging
 import nest_asyncio
@@ -39,15 +38,6 @@ print("Removing all temp files...")
 print("Done!")
 
 
-def get_bot_settings() -> dict:
-    with open('bot_settings.json', 'r') as f:
-        return json.load(f)
-
-
-if get_bot_settings()["debug"]:
-    print("Bot running in debug mode.")
-
-
 async def get_prefix(bot, message):
     jbot_db_global = bot.jbot_db_global
     try:
@@ -66,8 +56,12 @@ async def get_prefix(bot, message):
 bot = CustomClient(command_prefix=get_prefix, help_command=None, allowed_mentions=discord.AllowedMentions(everyone=False))
 
 
+if bot.get_bot_settings()["debug"]:
+    print("Bot running in debug mode.")
+
+
 async def is_whitelisted(ctx):
-    if ctx.author.id in get_bot_settings()["whitelist"]:
+    if ctx.author.id in bot.get_bot_settings()["whitelist"]:
         return True
     raise custom_errors.NotWhitelisted
 

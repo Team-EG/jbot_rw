@@ -1,7 +1,7 @@
 discord.py[voice]
-youtube-dl
 aiohttp
 aiosqlite
 psutil
 nest-asyncio
 koreanbots
+lavalink
