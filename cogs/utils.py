@@ -22,6 +22,7 @@ import os
 import json
 import random
 import platform
+import lavalink
 from discord.ext import commands
 from modules import utils
 from modules.graphql import GraphQL
@@ -219,6 +220,15 @@ class Utils(commands.Cog):
         else:
             return await ctx.send("잘못된 입력값입니다.")
         await ctx.send(f"```\n{query}\n```")
+
+    @commands.command(name="라바링크", description="라바링크 상태를 보여줍니다.", aliases=["lavalink", "lava"])
+    async def lavalink_info(self, ctx):
+        embed = discord.Embed(title="라바링크 정보", color=discord.Color.from_rgb(225, 225, 225), timestamp=ctx.message.created_at)
+        node: lavalink.Stats = self.bot.lavalink.node_manager.nodes[0].stats
+        embed.add_field(name="노드에 연결된 플레이어 수", value=f"총 {node.players}개 ({node.playing_players}개 재생중)")
+        embed.add_field(name="노드 부하", value=f"{round(node.lavalink_load*100)}%")
+        embed.add_field(name="노드 서버 부하", value=f"{round(node.system_load*100)}%")
+        await ctx.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
