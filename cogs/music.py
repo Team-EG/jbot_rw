@@ -26,6 +26,7 @@ from modules.cilent import CustomClient
 class Music(commands.Cog):
     def __init__(self, bot: CustomClient):
         self.bot = bot
+        self.bot.loop.create_task(self.on_bot_ready())
 
     def cog_unload(self):
         self.bot.lavalink._event_hooks.clear()
@@ -33,8 +34,8 @@ class Music(commands.Cog):
     async def cog_check(self, ctx):
         return ctx.author.id in self.bot.get_bot_settings()["whitelist"]
 
-    @commands.Cog.listener()
-    async def on_ready(self):
+    async def on_bot_ready(self):
+        await self.bot.wait_until_ready()
         self.bot.lavalink.add_event_hook(self.main_event)
 
     @staticmethod
