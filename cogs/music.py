@@ -77,6 +77,7 @@ class Music(commands.Cog):
             channel: discord.TextChannel = event.player.fetch("channel")
             await channel.send(f"대기열이 비어있고 모든 노래를 재생했어요. 음성 채널에서 나갈께요.")
             await self.connect(guild)
+            await self.bot.lavalink.player_manager.destroy(guild.id)
 
     @commands.command(name="재생", description="음악을 재생합니다.", usage="`재생 [유튜브 URL 또는 제목]`", aliases=["play", "p", "ㅔ", "대기", "queue", "q", "ㅂ"])
     async def play(self, ctx: commands.Context, *, url: str):

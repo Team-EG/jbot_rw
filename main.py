@@ -53,7 +53,7 @@ async def get_prefix(bot, message):
     return commands.when_mentioned_or(*['제이봇 ', 'j!', guild_prefix])(bot, message)
 
 
-bot = CustomClient(command_prefix=get_prefix, help_command=None, allowed_mentions=discord.AllowedMentions(everyone=False))
+bot = CustomClient(command_prefix=get_prefix, help_command=None, allowed_mentions=discord.AllowedMentions(everyone=False), intents=discord.Intents.all())
 
 
 if bot.get_bot_settings()["debug"]:
