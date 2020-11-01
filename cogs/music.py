@@ -175,6 +175,17 @@ class Music(commands.Cog):
         await lava.set_pause(False)
         await ctx.send(f"{ctx.author.mention} 일시정지를 해제했어요.")
 
+    @commands.command(name="정지", description="음악 재생을 멈춥니다.", aliases=["stop", "ㄴ새ㅔ"])
+    async def stop(self, ctx: commands.Context):
+        voice_state = await self.voice_check(ctx, check_connected=True)
+        if voice_state[0] != 0:
+            return await ctx.send(voice_state[1])
+        lava: lavalink.DefaultPlayer = self.bot.lavalink.player_manager.get(ctx.guild.id)
+        await lava.stop()
+        await ctx.send(f"대기열이 비어있고 모든 노래를 재생했어요. 음성 채널에서 나갈께요.")
+        await self.connect(ctx.guild)
+        await self.bot.lavalink.player_manager.destroy(ctx.guild.id)
+
     @commands.command(name="볼륨", description="음악의 볼륨을 조절합니다.", usage="`볼륨 [1~100]`", aliases=["volume", "vol", "v", "패ㅣㅕㅡㄷ", "ㅍ"])
     async def volume(self, ctx: commands.Context, vol: int = None):
         voice_state = await self.voice_check(ctx, check_connected=True, check_playing=True)
@@ -278,6 +289,141 @@ class Music(commands.Cog):
         embed_list.append(ql_embed)
         embed_list.append(next_embed)
         await utils.start_page(self.bot, ctx, embed_list, embed=True)
+
+    @commands.group(name="재생목록", description="자신의 재생목록을 보여줍니다.")
+    async def playlist(self, ctx: commands.Context):
+        if ctx.invoked_subcommand is None:
+            playlist_list = await self.bot.jbot_db_global.res_sql("SELECT * FROM playlist WHERE user_id=?",
+                                                                  (ctx.author.id,))
+            embed = discord.Embed(title="재생목록",
+                                  description=f"음악 {len(playlist_list)}개\n"
+                                              f"음악 추가는 `{ctx.prefix}재생목록 추가` 명령어로, 음악 제거는 `{ctx.prefix}재생목록 제거` 명령어를 이용해주세요.\n"
+                                              f"재생목록에 저장된 모든 노래를 재생하고 싶으시면 `{ctx.prefix}재생목록 재생` 명령어를 사용해주세요.",
+                                  color=discord.Colour.from_rgb(225, 225, 225))
+            embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
+            if len(playlist_list) == 0:
+                return await ctx.send(f"재생목록에 음악이 하나도 없네요...\n"
+                                      f"음악 추가는 `{ctx.prefix}재생목록 추가` 명령어로, 음악 제거는 `{ctx.prefix}재생목록 제거` 명령어를 이용해주세요.")
+            embed_list = []
+            tgt_embed = embed.copy()
+            count = 0
+            for x in playlist_list:
+                if count != 0 and count % 5 == 0:
+                    embed_list.append(tgt_embed)
+                    tgt_embed = embed.copy()
+                tgt_embed.add_field(name=x["title"], value=x["youtube_link"], inline=False)
+                count += 1
+            embed_list.append(tgt_embed)
+            if len(embed_list) == 1:
+                return await ctx.send(embed=embed_list[0])
+            await utils.start_page(self.bot, ctx, embed_list, embed=True)
+
+    @playlist.command(name="추가")
+    async def add_playlist(self, ctx: commands.Context, *, url):
+        embed = discord.Embed(title="재생목록 추가", description="정말로 이 음악을 재생목록에 추가할까요?")
+        resp = await self.bot.lavalink.get_tracks(url)
+        if resp is None or len(resp["tracks"]) == 0:
+            return await ctx.send(f"{ctx.author.mention} 영상을 못 찾았어요. URL 또는 검색어를 제대로 입력했는지 확인해주세요.")
+        if resp["loadType"] == "PLAYLIST_LOADED":
+            return await ctx.send(f"{ctx.author.mention} 유튜브 재생목록이 감지되었어요. 유튜브 재생목록은 추가가 불가능해요. 유튜브 영상 링크를 가져와주세요.")
+        elif resp["loadType"] == "SEARCH_RESULT":
+            track_list = []
+            count = 0
+            for x in resp['tracks']:
+                if count >= 5:
+                    break
+                track_list.append(x)
+                count += 1
+            list_embed = discord.Embed(title="검색 결과 리스트", description=f"{len(track_list)}개", color=discord.Color.red())
+            vid_list = [f"제목: {x['info']['title']}\n업로더: {x['info']['author']}\n[영상 바로가기]({x['info']['uri']})" for x in track_list]
+            msg, selected = await utils.start_cursor(self.bot, ctx, vid_list, list_embed)
+            await msg.delete()
+            if selected is None:
+                return await ctx.send(f"{ctx.author.mention} 재생목록 추가를 취소했어요.")
+            track = track_list[selected]
+        else:
+            track = resp['tracks'][0]
+        vid_url = track['info']['uri']
+        vid_title = track['info']['title']
+        thumb = f"https://img.youtube.com/vi/{track['info']['identifier']}/hqdefault.jpg"
+        embed.add_field(name="제목", value=vid_title, inline=False)
+        embed.add_field(name="링크", value=vid_url, inline=False)
+        embed.set_image(url=thumb)
+        msg = await ctx.send(embed=embed)
+        res = await utils.confirm(self.bot, ctx, msg)
+        if not res:
+            reject = discord.Embed(title="재생목록 추가", description="재생목록 추가가 취소되었어요.")
+            return await msg.edit(embed=reject)
+        await self.bot.jbot_db_global.exec_sql("INSERT INTO playlist(user_id, youtube_link, title) VALUES (?, ?, ?)",
+                                               (ctx.author.id, vid_url, vid_title))
+        succeed = discord.Embed(title="재생목록 추가", description="이 음악을 재생목록에 추가했어요.")
+        await msg.edit(embed=succeed)
+
+    @playlist.command(name="제거")
+    async def remove_playlist(self, ctx: commands.Context, *, title):
+        global vid_url, vid_title, info
+        embed = discord.Embed(title="재생목록 제거", description="정말로 이 음악을 재생목록에 제거할까요?")
+        try:
+            if title.startswith("https://") or title.startswith("youtube.com"):
+                info = await self.bot.jbot_db_global.res_sql(
+                    "SELECT * FROM playlist WHERE user_id=? AND youtube_link=?", (ctx.author.id, title))
+                vid_url = info[0]["youtube_link"]
+                vid_title = info[0]["title"]
+            else:
+                info = await self.bot.jbot_db_global.res_sql("SELECT * FROM playlist WHERE user_id=? AND title=?",
+                                                             (ctx.author.id, title))
+                vid_url = info[0]["youtube_link"]
+                vid_title = info[0]["title"]
+        except IndexError:
+            return await ctx.send("해당 음악을 찾지 못했습니다.")
+        embed.add_field(name="제목", value=vid_title, inline=False)
+        embed.add_field(name="링크", value=vid_url, inline=False)
+        msg = await ctx.send(embed=embed)
+        res = await utils.confirm(self.bot, ctx, msg)
+        if not res:
+            reject = discord.Embed(title="재생목록 제거", description="재생목록 제거가 취소되었습니다.")
+            return await msg.edit(embed=reject)
+        succeed = discord.Embed(title="재생목록 제거", description="이 음악을 재생목록에 제거했습니다.")
+        await self.bot.jbot_db_global.exec_sql("DELETE FROM playlist WHERE user_id=? AND youtube_link=?",
+                                               (ctx.author.id, vid_url))
+        await msg.edit(embed=succeed)
+
+    @playlist.command(name="재생")
+    async def play_playlist(self, ctx: commands.Context):
+        playlist_list = await self.bot.jbot_db_global.res_sql("SELECT * FROM playlist WHERE user_id=?",
+                                                              (ctx.author.id,))
+        if len(playlist_list) == 0:
+            return await ctx.send(f"재생목록이 비어있어요. 먼저 `{ctx.prefix}재생목록 추가` 명령어로 재생목록에 음악을 추가해주세요.")
+        voice_state = await self.voice_check(ctx, check_connected=True)
+        init_embed = discord.Embed(title="재생목록 재생",
+                                   description="정말로 재생 대기열에 재생목록에 있는 음악을 모두 추가할까요?",
+                                   color=discord.Colour.from_rgb(225, 225, 225))
+        msg = await ctx.send(embed=init_embed)
+        res = await utils.confirm(self.bot, ctx=ctx, msg=msg)
+        if not res:
+            cancel_embed = discord.Embed(title="재생목록 재생",
+                                         description="재생목록 재생을 취소했어요.",
+                                         color=discord.Color.red())
+            return await msg.edit(embed=cancel_embed)
+        pass_embed = discord.Embed(title="재생목록 재생",
+                                   description="잠시만 기다려주세요...",
+                                   color=discord.Color.green())
+        await msg.edit(embed=pass_embed)
+        if voice_state[0] == 1:
+            return await ctx.send("먼저 명령어 실행 전에 음성 채널에 연결해주세요.")
+        lava: lavalink.DefaultPlayer = self.bot.lavalink.player_manager.create(ctx.guild.id, region="ko")
+        if voice_state[0] == 2:
+            await self.connect(ctx.guild, ctx.author.voice) if not lava.is_connected else None
+        for x in playlist_list:
+            resp = await lava.node.get_tracks(x["youtube_link"])
+            lava.add(requester=ctx.author.id, track=resp['tracks'][0])
+        finished_embed = discord.Embed(title="재생목록 재생",
+                                       description=f"`{'`, `'.join([x['title'] for x in playlist_list])}`을(를) 대기열에 추가했어요!",
+                                       color=discord.Color.green())
+        await msg.edit(embed=finished_embed)
+        if not lava.is_playing:
+            lava.store("channel", ctx.channel)
+            return await lava.play()
 
 
 def setup(bot):
