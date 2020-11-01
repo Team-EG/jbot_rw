@@ -27,14 +27,42 @@ class ServerLog(commands.Cog):
         self.jbot_db_global = bot.jbot_db_global
 
     @commands.Cog.listener()
-    async def on_message_delete(self, message):
+    async def on_message(self, message: discord.Message):
+        if bool(message.attachments):
+            files = [x.url for x in message.attachments]
+            guild_data = await self.jbot_db_global.res_sql("SELECT log_channel FROM guild_setup WHERE guild_id=?", (message.guild.id,))
+            try:
+                log_channel = message.guild.get_channel(guild_data[0]["log_channel"])
+            except IndexError:
+                return
+            if log_channel is None:
+                return
+            for x in files:
+                await log_channel.send("로그 저장용 메시지입니다: "+x, delete_after=1)
+
+    @commands.Cog.listener()
+    async def on_message_delete(self, message: discord.Message):
         if str(message.content) is None:
+            return
+        if message.author.bot:
             return
         embed = discord.Embed(title='메시지 삭제됨',
                               description=message.channel.mention + f" (`#{message.channel.name}`)",
                               colour=discord.Color.red())
         embed.set_author(name=message.author.display_name + f" ({message.author})", icon_url=message.author.avatar_url)
         embed.add_field(name="메시지 내용", value=message.content if message.content else "(메시지 내용 없음)")
+        if bool(message.attachments):
+            files = [x.url for x in message.attachments]
+            _str = '\n'.join(files)
+            embed.add_field(name="첨부파일", value=f"{len(files)}개", inline=False)
+            guild_data = await self.jbot_db_global.res_sql("SELECT log_channel FROM guild_setup WHERE guild_id=?", (message.guild.id,))
+            try:
+                log_channel = message.guild.get_channel(guild_data[0]["log_channel"])
+            except IndexError:
+                return
+            if log_channel is None:
+                return
+            await log_channel.send(_str)
         await admin.send_to_log(self.jbot_db_global, message.guild, embed)
 
     @commands.Cog.listener()
@@ -52,6 +80,8 @@ class ServerLog(commands.Cog):
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
         if before.content == after.content:
+            return
+        if before.author.bot:
             return
         embed = discord.Embed(title='메시지 수정됨',
                               description=after.channel.mention + f" (`#{after.channel.name}`)",

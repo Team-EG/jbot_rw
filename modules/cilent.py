@@ -1,6 +1,7 @@
 import koreanbots
 import json
 import lavalink
+import datetime
 from discord.ext import commands
 from . import jbot_db
 
@@ -41,3 +42,7 @@ class CustomClient(commands.AutoShardedBot):
     def get_bot_settings() -> dict:
         with open('bot_settings.json', 'r') as f:
             return json.load(f)
+
+    @staticmethod
+    def get_kst():
+        return datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=9)))

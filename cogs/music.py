@@ -32,6 +32,7 @@ class Music(commands.Cog):
         self.bot.lavalink._event_hooks.clear()
 
     async def cog_check(self, ctx):
+        # return False # 현재 라바링크 사용 불가능
         return ctx.author.id in self.bot.get_bot_settings()["whitelist"]
 
     async def on_bot_ready(self):
@@ -78,6 +79,21 @@ class Music(commands.Cog):
             await channel.send(f"대기열이 비어있고 모든 노래를 재생했어요. 음성 채널에서 나갈께요.")
             await self.connect(guild)
             await self.bot.lavalink.player_manager.destroy(guild.id)
+        if isinstance(event, lavalink.TrackStartEvent):
+            current: lavalink.AudioTrack = event.track
+            guild: discord.Guild = self.bot.get_guild(int(event.player.guild_id))
+            playing_vid_url = current.uri
+            playing_vid_title = current.title
+            playing_vid_author = current.author
+            playing_thumb = f"https://img.youtube.com/vi/{current.identifier}/hqdefault.jpg"
+            req_by = guild.get_member(current.requester)
+            embed = discord.Embed(title="유튜브 음악 재생 - 재생 시작",
+                                  color=discord.Color.red(),
+                                  timestamp=self.bot.get_kst()).set_footer(text=str(req_by), icon_url=req_by.avatar_url)
+            embed.description = f"업로더: `{playing_vid_author}`\n제목: [`{playing_vid_title}`]({playing_vid_url})"
+            embed.set_image(url=playing_thumb)
+            channel: discord.TextChannel = event.player.fetch("channel")
+            await channel.send(embed=embed, delete_after=10)
 
     @commands.command(name="재생", description="음악을 재생합니다.", usage="`재생 [유튜브 URL 또는 제목]`", aliases=["play", "p", "ㅔ", "대기", "queue", "q", "ㅂ"])
     async def play(self, ctx: commands.Context, *, url: str):
@@ -91,7 +107,7 @@ class Music(commands.Cog):
         embed.description = "잠시만 기다려주세요... (연결중)"
         msg = await ctx.send(embed=embed)
         lava: lavalink.DefaultPlayer = self.bot.lavalink.player_manager.create(ctx.guild.id, region="ko")
-        await self.connect(ctx.guild, ctx.author.voice)
+        await self.connect(ctx.guild, ctx.author.voice) if not lava.is_connected else None
         url = self.check_url(url)
         resp = await lava.node.get_tracks(url)
         await msg.delete()
@@ -121,17 +137,17 @@ class Music(commands.Cog):
         else:
             lava.add(requester=ctx.author.id, track=resp['tracks'][0])
         embed.title += " - 재생 시작" if not lava.is_playing else " - 재생 대기열에 추가됨"
+        current: lavalink.AudioTrack = lava.queue[-1]
         if not lava.is_playing:
             lava.store("channel", ctx.channel)
-            await lava.play()
-        current: lavalink.AudioTrack = lava.current
+            return await lava.play()
         playing_vid_url = current.uri
         playing_vid_title = current.title
         playing_vid_author = current.author
         playing_thumb = f"https://img.youtube.com/vi/{current.identifier}/hqdefault.jpg"
         embed.description = f"업로더: `{playing_vid_author}`\n제목: [`{playing_vid_title}`]({playing_vid_url})"
         embed.set_image(url=playing_thumb)
-        await ctx.send(embed=embed)
+        await ctx.send(embed=embed, delete_after=10)
 
     @commands.command(name="스킵", description="재생중인 음악을 스킵합니다.", usage="`스킵 (스킵할 번호)`", aliases=["s", "skip", "ㄴ"])
     async def skip(self, ctx: commands.Context):
@@ -207,12 +223,21 @@ class Music(commands.Cog):
         one_embed.set_author(name=ctx.guild.name, icon_url=ctx.guild.icon_url)
         one_embed.set_image(url=playing_thumb)
         req_by = ctx.guild.get_member(current.requester)
+        length = current.duration / 1000
+        now = lava._last_position / 1000
+        percent = now / length
+        pos = round(percent * 10)
+        base = list("-"*10)
+        base[pos if pos <= 9 else -1] = "o"
+        vid = utils.parse_second(round(length))
+        cpos = utils.parse_second(round(now))
         one_embed.add_field(name="정보",
                             value=f"업로더: `{playing_vid_author}`\n제목: [`{playing_vid_title}`]({playing_vid_url})",
                             inline=False)
         one_embed.add_field(name="요청자", value=f"{req_by.mention} (`{req_by}`)", inline=False)
         one_embed.add_field(name="현재 볼륨", value=f"{lava.volume}%", inline=False)
         one_embed.add_field(name="대기중인 음악 개수", value=f"{len([x for x in lava.queue])}개")
+        one_embed.set_footer(text=''.join(base) + f" | {cpos} / {vid}")
         if lava.paused:
             one_embed.add_field(name="플레이어 상태", value="현재 일시정지 상태입니다.", inline=False)
         elif lava.repeat:
