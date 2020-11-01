@@ -321,7 +321,7 @@ class Music(commands.Cog):
     @playlist.command(name="추가")
     async def add_playlist(self, ctx: commands.Context, *, url):
         embed = discord.Embed(title="재생목록 추가", description="정말로 이 음악을 재생목록에 추가할까요?")
-        resp = await self.bot.lavalink.get_tracks(url)
+        resp = await self.bot.lavalink.get_tracks(self.check_url(url))
         if resp is None or len(resp["tracks"]) == 0:
             return await ctx.send(f"{ctx.author.mention} 영상을 못 찾았어요. URL 또는 검색어를 제대로 입력했는지 확인해주세요.")
         if resp["loadType"] == "PLAYLIST_LOADED":
