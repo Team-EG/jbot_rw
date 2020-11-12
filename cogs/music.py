@@ -31,10 +31,6 @@ class Music(commands.Cog):
     def cog_unload(self):
         self.bot.lavalink._event_hooks.clear()
 
-    async def cog_check(self, ctx):
-        # return False # 현재 라바링크 사용 불가능
-        return ctx.author.id in self.bot.get_bot_settings()["whitelist"]
-
     async def on_bot_ready(self):
         await self.bot.wait_until_ready()
         self.bot.lavalink.add_event_hook(self.main_event)
