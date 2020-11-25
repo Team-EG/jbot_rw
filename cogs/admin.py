@@ -49,6 +49,8 @@ class Admin(commands.Cog):
 
     @commands.command(name="도배리셋", description="도배 카운트를 리셋합니다.", usage="`도배리셋 (유저)`")
     async def reset_spam(self, ctx, tgt: discord.Member = None):
+        if not os.path.isfile(f"temp/{ctx.guild.id}_spam.json"):
+            return await ctx.send("도배 기록이 없거나 도배 기능이 꺼져있습니다.")
         if tgt is None:
             os.remove(f"temp/{ctx.guild.id}_spam.json")
             return await ctx.send("도배 카운트 리셋이 완료되었습니다.")
