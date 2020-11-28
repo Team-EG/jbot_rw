@@ -82,7 +82,7 @@ class Stock(commands.Cog):
         header = {"Content-Type": "application/json"}
         body = {"stock_list": data}
         async with aiohttp.ClientSession() as session:
-            async with session.post(url="http://jebserver.iptime.org:8901/request_image", headers=header, json=body) as resp:
+            async with session.post(url="http://jebserver.iptime.org:9001/request_image", headers=header, json=body) as resp:
                 image_url = await resp.text()
 
         embed = discord.Embed(title="주식 그래프",
