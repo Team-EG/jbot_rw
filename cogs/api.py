@@ -38,6 +38,19 @@ class API(commands.Cog):
                           "roles": [{x.id: x.name} for x in roles]}
             return web.json_response(guild_data)
 
+        @self.routes.post("/api/login")
+        async def login_api(request: Request):
+            body = await request.json()
+            if "user_id" not in body.keys():
+                return web.json_response({"description": "Incorrect Body."}, status=400)
+            user = self.bot.get_user(int(body["user_id"]))
+            user = user if user else await self.bot.fetch_user(int(body["user_id"]))
+            resp = {"user_id": int(user.id),
+                    "name": str(user.name),
+                    "discriminator": str(user.discriminator),
+                    "avatar_url": str(user.avatar_url)}
+            return web.json_response(resp)
+
         self.app.add_routes(self.routes)
         runner = web.AppRunner(self.app)
         await runner.setup()
