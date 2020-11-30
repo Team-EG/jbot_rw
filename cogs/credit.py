@@ -48,7 +48,8 @@ class Credit(commands.Cog):
             embed = discord.Embed(title="제이봇 크레딧", description="개발: Team EG",
                                   color=discord.Colour.from_rgb(225, 225, 225))
             embed.add_field(name="메인 개발자", value=str(eun))
-            embed.add_field(name="제작 참여", value=str(gpm) + "\n" + str(rainy))
+            embed.add_field(name="대시보드 개발자", value=str(rainy))
+            embed.add_field(name="제작 참여", value=str(gpm))
             embed.add_field(name="Special thanks to...", value="Team EG members, KSP 한국 포럼 디스코드, and you!")
             await msg.edit(embed=embed)
             return

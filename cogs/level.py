@@ -144,7 +144,8 @@ class Level(commands.Cog):
             return
         curr_lvl += 1
         await self.jbot_db_level.exec_sql(f"""UPDATE "{message.guild.id}_level" SET lvl=? WHERE user_id=?""", (curr_lvl, message.author.id))
-        await message.channel.send(f"{message.author.mention}님이 {curr_lvl}레벨로 레벨업 하셨습니다!")
+        embed = discord.Embed(title="레벨업!", description=f"{message.author.mention}님이 {curr_lvl}레벨로 레벨업 하셨습니다!")
+        await message.channel.send(embed=embed)
         to_give_roles = json.loads((await self.jbot_db_global.res_sql("""SELECT "to_give_roles" FROM guild_setup WHERE guild_id=?""", (message.guild.id,)))[0]["to_give_roles"])
         if str(curr_lvl) in to_give_roles.keys():
             tgt_role = message.guild.get_role(int(to_give_roles[str(curr_lvl)]))
