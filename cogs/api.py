@@ -68,6 +68,14 @@ class API(commands.Cog):
                 to_return[x]["avatar_url"] = str(member.avatar_url)
             return web.json_response(to_return)
 
+        @self.routes.get("/api/playlist/{user_id}")
+        async def get_guild_setup(request: Request):
+            user_id = int(request.match_info["user_id"])
+            playlist = await self.bot.jbot_db_global.res_sql("""SELECT * FROM playlist WHERE user_id=?""", (user_id,))
+            if not bool(playlist):
+                return web.json_response({"description": "Playlist Not Found. Check user_id."}, status=404)
+            return web.json_response(playlist)
+
         @self.routes.post("/api/login")
         async def login_api(request: Request):
             body = await request.json()
@@ -85,6 +93,7 @@ class API(commands.Cog):
 
         @self.routes.post("/api/update/{guild_id}")
         async def update_settings(request: Request):
+            return web.json_response({"description": "Not Ready"}, status=403)
             auth_failed = await self.check_auth(request)
             if isinstance(auth_failed, Response):
                 return auth_failed
