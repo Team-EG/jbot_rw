@@ -35,7 +35,7 @@ class API(commands.Cog):
                 return auth_failed
             guild_id = int(request.match_info["guild_id"])
             tgt_guild: discord.Guild = self.bot.get_guild(guild_id)
-            tgt_guild = tgt_guild if tgt_guild else await self.bot.fetch_guild(guild_id)
+            #tgt_guild = tgt_guild if tgt_guild else await self.bot.fetch_guild(guild_id)
             if tgt_guild is None:
                 return web.json_response({"description": "Guild Not Found."}, status=404)
             roles = tgt_guild.roles if tgt_guild.roles else await tgt_guild.fetch_roles()
@@ -52,7 +52,21 @@ class API(commands.Cog):
             if not bool(guild_setting["use_level"]):
                 return web.json_response({"description": "Level is not enabled."}, status=403)
             level = await self.bot.jbot_db_level.res_sql(f"""SELECT * FROM "{guild_id}_level" ORDER BY exp DESC""")
-            return web.json_response(level[0])
+            to_return = level.copy()
+            for x in range(len(level)):
+                user_id = level[x]["user_id"]
+                #user = self.bot.get_user(user_id)
+                guild = self.bot.get_guild(guild_id)
+                member = guild.get_member(user_id)
+                if member is None:
+                    to_return[x]["name"] = None
+                    to_return[x]["nick"] = None
+                    to_return[x]["avatar_url"] = None
+                    continue
+                to_return[x]["name"] = str(member)
+                to_return[x]["nick"] = str(member.nick if member.nick else member.name)
+                to_return[x]["avatar_url"] = str(member.avatar_url)
+            return web.json_response(to_return)
 
         @self.routes.post("/api/login")
         async def login_api(request: Request):
@@ -60,7 +74,9 @@ class API(commands.Cog):
             if "user_id" not in body.keys():
                 return web.json_response({"description": "Incorrect Body."}, status=400)
             user = self.bot.get_user(int(body["user_id"]))
-            user = user if user else await self.bot.fetch_user(int(body["user_id"]))
+            if user is None:
+                return web.json_response({"description": "User Not Found."}, status=404)
+            # user = user if user else await self.bot.fetch_user(int(body["user_id"]))
             resp = {"user_id": int(user.id),
                     "name": str(user.name),
                     "discriminator": str(user.discriminator),
