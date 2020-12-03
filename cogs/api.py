@@ -19,8 +19,8 @@ class API(commands.Cog):
     async def run_api(self):
         @self.routes.get("/api/guild_setup/{guild_id}")
         async def get_guild_setup(request: Request):
-            auth_failed = self.check_auth(request)
-            if auth_failed:
+            auth_failed = await self.check_auth(request)
+            if isinstance(auth_failed, Response):
                 return auth_failed
             guild_id = int(request.match_info["guild_id"])
             guild_setup = await self.bot.jbot_db_global.res_sql("""SELECT * FROM guild_setup WHERE guild_id=?""", (guild_id,))
@@ -30,8 +30,8 @@ class API(commands.Cog):
 
         @self.routes.get("/api/guild/{guild_id}")
         async def get_guild_info(request: Request):
-            auth_failed = self.check_auth(request)
-            if auth_failed:
+            auth_failed = await self.check_auth(request)
+            if isinstance(auth_failed, Response):
                 return auth_failed
             guild_id = int(request.match_info["guild_id"])
             tgt_guild: discord.Guild = self.bot.get_guild(guild_id)
