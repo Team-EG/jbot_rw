@@ -26,6 +26,8 @@ class API(commands.Cog):
             guild_setup = await self.bot.jbot_db_global.res_sql("""SELECT * FROM guild_setup WHERE guild_id=?""", (guild_id,))
             if not bool(guild_setup):
                 return web.json_response({"description": "Guild Not Found. Check guild_id."}, status=404)
+            to_return = guild_setup[0]
+            to_return["to_give_roles"] = json.loads(to_return["to_give_roles"])
             return web.json_response(guild_setup[0])
 
         @self.routes.get("/api/guild/{guild_id}")
