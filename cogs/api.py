@@ -1,5 +1,6 @@
 import discord
 import json
+import aiohttp_cors
 from aiohttp import web
 from aiohttp.web import Request
 from aiohttp.web import Response
@@ -15,6 +16,11 @@ class API(commands.Cog):
         self.routes = web.RouteTableDef()
         self.site: web.TCPSite
         self.bot.loop.create_task(self.run_api())
+        self.cors = aiohttp_cors.setup(self.app, defaults={
+            "*": aiohttp_cors.ResourceOptions(allow_credentials=True,
+                                              expose_headers="*",
+                                              allow_headers="*",)
+        })
 
     async def run_api(self):
         @self.routes.get("/api/guild_setup/{guild_id}")
@@ -116,6 +122,7 @@ class API(commands.Cog):
             return web.json_response(guild_setup[0])
 
         self.app.add_routes(self.routes)
+        [self.cors.add(x) for x in self.app.router.routes()]
         runner = web.AppRunner(self.app)
         await runner.setup()
         self.site = web.TCPSite(runner, '0.0.0.0', 9002)
