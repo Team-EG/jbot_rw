@@ -34,10 +34,10 @@ class Admin(commands.Cog):
         self.jbot_db_warns = bot.jbot_db_warns
 
     async def cog_check(self, ctx):
-        if ctx.invoked_with in ["도배리셋"]:
+        if ctx.invoked_with in ["도배리셋", "정리"]:
             if ctx.author.guild_permissions.manage_messages:
                 return True
-        if ctx.invoked_with in ["추방", "경고", "경고삭제", "정리", "뮤트", "언뮤트"]:
+        if ctx.invoked_with in ["추방", "경고", "경고삭제", "뮤트", "언뮤트"]:
             if ctx.author.guild_permissions.kick_members:
                 return True
         if ctx.invoked_with in ["차단"]:
@@ -46,6 +46,12 @@ class Admin(commands.Cog):
         if ctx.author.guild_permissions.administrator or ctx.author == ctx.guild.owner:
             return True
         raise custom_errors.NotAdmin
+
+    async def cog_before_invoke(self, ctx):
+        embed = discord.Embed(title="관리 명령어 실행됨", description=ctx.message.content)
+        embed.set_author(name=ctx.author.display_name + f" ({ctx.author})", icon_url=ctx.author.avatar_url)
+        embed.set_footer(text=f"메시지 ID: {ctx.message.id}\n관리자 ID: {ctx.author.id}")
+        await admin.send_to_log(self.jbot_db_global, ctx.guild, embed)
 
     @commands.command(name="도배리셋", description="도배 카운트를 리셋합니다.", usage="`도배리셋 (유저)`")
     async def reset_spam(self, ctx, tgt: discord.Member = None):
