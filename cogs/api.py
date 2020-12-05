@@ -77,12 +77,50 @@ class API(commands.Cog):
             return web.json_response(to_return)
 
         @self.routes.get("/api/playlist/{user_id}")
-        async def get_guild_setup(request: Request):
+        async def get_playlist(request: Request):
             user_id = int(request.match_info["user_id"])
             playlist = await self.bot.jbot_db_global.res_sql("""SELECT * FROM playlist WHERE user_id=?""", (user_id,))
             if not bool(playlist):
                 return web.json_response({"description": "Playlist Not Found. Check user_id."}, status=404)
             return web.json_response(playlist)
+
+        @self.routes.get("/api/warns/{guild_id}")
+        async def get_warns(request: Request):
+            guild_id = int(request.match_info["guild_id"])
+            warn_exist = await self.bot.jbot_db_warns.res_sql("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (f"{guild_id}_warns",), return_raw=True)
+            if not bool(len(warn_exist)):
+                return web.json_response({"description": "No warns found."}, status=404)
+            warn_list = await self.bot.jbot_db_warns.res_sql(f"""SELECT * FROM "{guild_id}_warns";""")
+            if not bool(warn_list):
+                return web.json_response({"description": "No warns found."}, status=404)
+            to_return = warn_list.copy()
+            tgt_guild: discord.Guild = self.bot.get_guild(guild_id)
+            for x in range(len(warn_list)):
+                user_id = warn_list[x]["user_id"]
+                member = tgt_guild.get_member(user_id)
+                member = member if member else self.bot.get_user(user_id)
+                admin_id = warn_list[x]["issued_by"]
+                admin = tgt_guild.get_member(admin_id)
+                admin = admin if admin else self.bot.get_user(admin_id)
+                to_return[x]["tgt"] = {}
+                to_return[x]["admin"] = {}
+                if member is None:
+                    to_return[x]["tgt"]["name"] = None
+                    to_return[x]["tgt"]["nick"] = None
+                    to_return[x]["tgt"]["avatar_url"] = None
+                else:
+                    to_return[x]["tgt"]["name"] = str(member)
+                    to_return[x]["tgt"]["nick"] = str(member.nick if member.nick else member.name)
+                    to_return[x]["tgt"]["avatar_url"] = str(member.avatar_url)
+                if admin is None:
+                    to_return[x]["admin"]["name"] = None
+                    to_return[x]["admin"]["nick"] = None
+                    to_return[x]["admin"]["avatar_url"] = None
+                else:
+                    to_return[x]["admin"]["name"] = str(admin)
+                    to_return[x]["admin"]["nick"] = str(admin.nick if admin.nick else admin.name)
+                    to_return[x]["admin"]["avatar_url"] = str(admin.avatar_url)
+            return web.json_response(to_return)
 
         @self.routes.post("/api/login")
         async def login_api(request: Request):
