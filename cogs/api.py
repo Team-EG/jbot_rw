@@ -57,9 +57,11 @@ class API(commands.Cog):
         @self.routes.get("/api/level/{guild_id}")
         async def get_level_info(request: Request):
             guild_id = int(request.match_info["guild_id"])
-            guild_setting = (await self.bot.jbot_db_global.res_sql("""SELECT use_level FROM guild_setup WHERE guild_id=?""", (guild_id,)))[0]
-            if not bool(guild_setting["use_level"]):
-                return web.json_response({"description": "Level is not enabled."}, status=403)
+            guild_setting = await self.bot.jbot_db_global.res_sql("""SELECT use_level FROM guild_setup WHERE guild_id=?""", (guild_id,))
+            if not guild_setting:
+                return web.json_response({"description": "Guild Not Found"}, status=404)
+            if not bool(guild_setting[0]["use_level"]):
+                return web.json_response({"description": "Level Not Enabled."}, status=403)
             level = await self.bot.jbot_db_level.res_sql(f"""SELECT * FROM "{guild_id}_level" ORDER BY exp DESC""")
             to_return = level.copy()
             for x in range(len(level)):
