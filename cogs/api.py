@@ -67,13 +67,14 @@ class API(commands.Cog):
                 #user = self.bot.get_user(user_id)
                 guild = self.bot.get_guild(guild_id)
                 member = guild.get_member(user_id)
+                member = member if member else self.bot.get_user(user_id)
                 if member is None:
                     to_return[x]["name"] = None
                     to_return[x]["nick"] = None
                     to_return[x]["avatar_url"] = None
                     continue
                 to_return[x]["name"] = str(member)
-                to_return[x]["nick"] = str(member.nick if member.nick else member.name)
+                to_return[x]["nick"] = str(member.nick if hasattr(member, "nick") and member.nick else member.name)
                 to_return[x]["avatar_url"] = str(member.avatar_url)
             return web.json_response(to_return)
 
@@ -111,7 +112,7 @@ class API(commands.Cog):
                     to_return[x]["tgt"]["avatar_url"] = None
                 else:
                     to_return[x]["tgt"]["name"] = str(member)
-                    to_return[x]["tgt"]["nick"] = str(member.nick if member.nick else member.name)
+                    to_return[x]["tgt"]["nick"] = str(member.nick if hasattr(member, "nick") and member.nick else member.name)
                     to_return[x]["tgt"]["avatar_url"] = str(member.avatar_url)
                 if admin is None:
                     to_return[x]["admin"]["name"] = None
@@ -119,7 +120,7 @@ class API(commands.Cog):
                     to_return[x]["admin"]["avatar_url"] = None
                 else:
                     to_return[x]["admin"]["name"] = str(admin)
-                    to_return[x]["admin"]["nick"] = str(admin.nick if admin.nick else admin.name)
+                    to_return[x]["admin"]["nick"] = str(admin.nick if hasattr(admin, "nick") and admin.nick else admin.name)
                     to_return[x]["admin"]["avatar_url"] = str(admin.avatar_url)
             return web.json_response(to_return)
 
