@@ -1,5 +1,6 @@
 import discord
 import json
+import ssl
 import aiohttp_cors
 from aiohttp import web
 from aiohttp.web import Request
@@ -163,7 +164,9 @@ class API(commands.Cog):
         [self.cors.add(x) for x in self.app.router.routes()]
         runner = web.AppRunner(self.app)
         await runner.setup()
-        self.site = web.TCPSite(runner, '0.0.0.0', 9002)
+        ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+        ssl_context.load_cert_chain("jebserver_ssl/cert.pem", "jebserver_ssl/privkey.pem")
+        self.site = web.TCPSite(runner, '0.0.0.0', 9002, ssl_context=ssl_context)
         await self.bot.wait_until_ready()
         await self.site.start()
 
