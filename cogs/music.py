@@ -217,7 +217,7 @@ class Music(commands.Cog):
     async def queue_list(self, ctx: commands.Context):
         lava: lavalink.DefaultPlayer = self.bot.lavalink.player_manager.get(ctx.guild.id)
         if lava is None:
-            return await ctx.send("현재 재생중이 아닙니다.")
+            return await ctx.send("지금은 재생중이 아니네요...")
         temp_ql_embed = discord.Embed(title="뮤직 대기 리스트", color=discord.Colour.from_rgb(225, 225, 225),
                                       timestamp=ctx.message.created_at)
         temp_ql_embed.set_author(name=ctx.guild.name, icon_url=ctx.guild.icon_url)

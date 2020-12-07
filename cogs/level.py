@@ -42,49 +42,30 @@ class Level(commands.Cog):
         try:
             guild_setting = (await self.jbot_db_global.res_sql("""SELECT use_level FROM guild_setup WHERE guild_id=?""", (ctx.guild.id,)))[0]
         except IndexError:
-            return
+            raise custom_errors.NotEnabled("레벨")
         if not bool(guild_setting["use_level"]):
             raise custom_errors.NotEnabled("레벨")
 
-    @commands.command(name="레벨", description="자신의 레벨을 출력합니다.", usage="`레벨 (유저)`")
+    @commands.command(name="레벨", description="자신 또는 해당 유저의 레벨을 출력합니다.", usage="`레벨 (유저)`")
     async def level(self, ctx, user: discord.Member = None):
         if user is None:
             user = ctx.author
         lvl_data = await self.jbot_db_level.res_sql(f"""SELECT * FROM "{ctx.guild.id}_level" WHERE user_id=?""", (user.id,))
+        if not lvl_data:
+            return await ctx.send("해당 유저는 레벨 기록에 없어요...")
         lvl_data = lvl_data[0]
         lvl = lvl_data["lvl"]
         exp = lvl_data["exp"]
-        embed = discord.Embed(title="레벨", description=str(user.mention), color=user.color)
+        embed = discord.Embed(title="레벨", description=str(user.mention), color=user.color, timestamp=ctx.message.created_at)
         embed.set_thumbnail(url=user.avatar_url)
         embed.add_field(name="레벨", value=str(lvl))
         embed.add_field(name="XP", value=str(exp))
         await ctx.send(embed=embed)
 
-    @commands.command(name="랭크", description="이 서버의 레벨 리더보드를 출력합니다.")
+    @commands.command(name="랭크", description="이 서버의 레벨 리더보드를 출력합니다.", aliases=["리더보드", "순위"])
     async def rank(self, ctx):
-        sorted_list = await self.jbot_db_level.res_sql(f"""SELECT * FROM "{ctx.guild.id}_level" ORDER BY exp DESC""")
-        base_embed = discord.Embed(title="랭크", description=str(ctx.guild.name), color=discord.Colour.from_rgb(225, 225, 225))
-        base_embed.set_thumbnail(url=ctx.guild.icon_url)
-        base_embed.set_footer(text=ctx.author, icon_url=ctx.author.avatar_url)
-        lvl = 1
-        embed = base_embed.copy()
-        embed_list = []
-        count = 0
-        for x in sorted_list:
-            if int(x["exp"]) == 0:
-                break
-            if count != 0 and count % 5 == 0:
-                embed_list.append(embed)
-                embed = base_embed.copy()
-            embed.add_field(name=str(lvl),
-                            value=f"{ctx.guild.get_member(int(x['user_id'])).mention}\n레벨: {x['lvl']}\nXP: {x['exp']}",
-                            inline=False)
-            lvl += 1
-            count += 1
-        embed_list.append(embed)
-        if len(embed_list) == 1:
-            return await ctx.send(embed=embed)
-        await utils.start_page(self.bot, ctx=ctx, lists=embed_list, embed=True)
+        url = f"https://jebserver.iptime.org:9003/level/{ctx.guild.id}"
+        await ctx.send(f"`{ctx.guild.name}` 레벨 리더보드를 이 링크에서 확인해보세요!\n{url}")
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -144,7 +125,8 @@ class Level(commands.Cog):
             return
         curr_lvl += 1
         await self.jbot_db_level.exec_sql(f"""UPDATE "{message.guild.id}_level" SET lvl=? WHERE user_id=?""", (curr_lvl, message.author.id))
-        embed = discord.Embed(title="레벨업!", description=f"{message.author.mention}님이 {curr_lvl}레벨로 레벨업 하셨습니다!")
+        embed = discord.Embed(title="레벨업!", description=f"{message.author.mention}님이 {curr_lvl}레벨로 레벨업 하셨어요!", timestamp=message.created_at)\
+            .set_footer(text="서버 랭크가 궁금하신가요? `제이봇 랭크` 명령어를 입력해보세요!")
         await message.channel.send(embed=embed)
         to_give_roles = json.loads((await self.jbot_db_global.res_sql("""SELECT "to_give_roles" FROM guild_setup WHERE guild_id=?""", (message.guild.id,)))[0]["to_give_roles"])
         if str(curr_lvl) in to_give_roles.keys():
