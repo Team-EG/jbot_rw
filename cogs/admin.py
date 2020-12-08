@@ -106,10 +106,13 @@ class Admin(commands.Cog):
 
     @commands.command(name="차단", description="선택한 유저를 차단합니다.", usage="`차단 [유저] (사유)`")
     async def ban(self, ctx, member: discord.Member, *, reason="없음"):
-        await member.send(f"`{ctx.author.guild.name}`에서 차단되었습니다. (사유: {reason}, {ctx.author}이(가) 차단함)")
-        await member.send("https://www.youtube.com/watch?v=FXPKJUE86d0")
+        try:
+            await member.send(f"`{ctx.author.guild.name}`에서 차단되었어요. (사유: {reason}, {ctx.author}이(가) 차단함)")
+            await member.send("https://www.youtube.com/watch?v=FXPKJUE86d0")
+        except discord.Forbidden:
+            await ctx.send("선택하신 유저에게 차단 안내 DM을 보내지 못했어요. 바로 차단할께요.")
         await member.ban(reason=reason + f" ({ctx.author}이(가) 차단함)")
-        await ctx.send(f"`{member}`을(를) 차단했습니다. (사유: {reason})")
+        await ctx.send(f"`{member}`을(를) 차단했어요. (사유: {reason})")
 
     @commands.group(name="정리", description="메시지를 대량으로 삭제합니다.", usage="`정리 도움` 명령어를 참고해주세요.")
     async def purge(self, ctx, amount: typing.Optional[int] = None):
