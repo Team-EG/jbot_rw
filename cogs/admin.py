@@ -56,18 +56,18 @@ class Admin(commands.Cog):
     @commands.command(name="도배리셋", description="도배 카운트를 리셋합니다.", usage="`도배리셋 (유저)`")
     async def reset_spam(self, ctx, tgt: discord.Member = None):
         if not os.path.isfile(f"temp/{ctx.guild.id}_spam.json"):
-            return await ctx.send("도배 기록이 없거나 도배 기능이 꺼져있습니다.")
+            return await ctx.send("도배 기록이 없거나 도배 기능이 꺼져있어요.")
         if tgt is None:
             os.remove(f"temp/{ctx.guild.id}_spam.json")
-            return await ctx.send("도배 카운트 리셋이 완료되었습니다.")
+            return await ctx.send("도배 카운트를 리셋했어요.")
         with open(f"temp/{ctx.guild.id}_spam.json", "r") as f:
             time_data = json.load(f)
         if str(tgt.id) not in time_data.keys():
-            return await ctx.send("선택한 유저는 도배 카운트 기록에 없습니다.")
+            return await ctx.send("선택하신 유저는 도배 카운트 기록에 없네요...")
         del time_data[str(tgt.id)]
         with open(f"temp/{ctx.guild.id}_spam.json", "w") as f:
             json.dump(time_data, f, indent=4)
-        await ctx.send("선택한 유저의 도배 카운트 리셋이 완료되었습니다.")
+        await ctx.send("선택하신 유저의 도배 카운트 리셋이 완료되었어요.")
 
     @commands.command(name="뮤트", description="선택한 유저를 뮤트합니다.", usage="`뮤트 [유저] (사유)`")
     async def mute(self, ctx, member: discord.Member, *, reason="없음"):
@@ -76,7 +76,7 @@ class Admin(commands.Cog):
             return await ctx.send("먼저 뮤트 역할을 등록해주세요.")
         mute_role = ctx.guild.get_role(mute_role_id[0]["mute_role"])
         await member.add_roles(mute_role, reason=reason)
-        await ctx.send(f"{member.mention}을 뮤트했습니다. (사유: {reason})")
+        await ctx.send(f"{member.mention}을 뮤트했어요. (사유: {reason})")
 
     @commands.command(name="언뮤트", description="선택한 유저를 언뮤트합니다.", usage="`언뮤트 [유저]`")
     async def unmute(self, ctx, member: discord.Member):
@@ -85,7 +85,7 @@ class Admin(commands.Cog):
             return await ctx.send("먼저 뮤트 역할을 등록해주세요.")
         mute_role = ctx.guild.get_role(mute_role_id[0]["mute_role"])
         await member.remove_roles(mute_role)
-        await ctx.send(f"{member.mention}을 언뮤트했습니다.")
+        await ctx.send(f"{member.mention}을 언뮤트했어요.")
 
     @commands.command(name="경고", description="선택한 유저에게 경고를 부여합니다.", usage="`경고 [유저] (사유)`")
     async def warn(self, ctx, member: discord.Member, *, reason="없음"):
@@ -97,9 +97,12 @@ class Admin(commands.Cog):
 
     @commands.command(name="추방", description="선택한 유저를 추방합니다.", usage="`추방 [유저] (사유)`")
     async def kick(self, ctx, member: discord.Member, *, reason="없음"):
-        await member.send(f"`{ctx.author.guild.name}`에서 추방되었습니다. (사유: {reason}, {ctx.author}이(가) 추방함)")
+        try:
+            await member.send(f"`{ctx.author.guild.name}`에서 추방되었어요. (사유: {reason}, {ctx.author}이(가) 추방함)")
+        except discord.Forbidden:
+            await ctx.send("선택하신 유저에게 추방 안내 DM을 보내지 못했어요. 바로 추방할께요.")
         await member.kick(reason=reason+f" ({ctx.author}이(가) 추방함)")
-        await ctx.send(f"`{member}`을(를) 추방했습니다. (사유: {reason})")
+        await ctx.send(f"`{member}`을(를) 추방했어요. (사유: {reason})")
 
     @commands.command(name="차단", description="선택한 유저를 차단합니다.", usage="`차단 [유저] (사유)`")
     async def ban(self, ctx, member: discord.Member, *, reason="없음"):
@@ -112,9 +115,9 @@ class Admin(commands.Cog):
     async def purge(self, ctx, amount: typing.Optional[int] = None):
         if ctx.invoked_subcommand is None and amount is not None:
             if amount > 100:
-                return await ctx.send("오류 방지를 위해 메시지 삭제의 최대 개수는 100개로 제한됩니다.")
+                return await ctx.send("오류 방지를 위해 메시지 삭제의 최대 개수는 100개로 제한돼요.")
             await ctx.channel.purge(limit=amount+1)
-            msg = await ctx.send(f"메시지 {amount}개를 정리했습니다.\n`이 메시지는 5초 후 삭제됩니다.`")
+            msg = await ctx.send(f"메시지 {amount}개를 정리했어요.\n`이 메시지는 5초 후 삭제돼요.`")
             await msg.delete(delay=5)
 
     @purge.command(name="도움")
@@ -128,13 +131,13 @@ class Admin(commands.Cog):
     @purge.command(name="유저", description="선택한 유저가 보낸 메시지들을 삭제합니다.")
     async def purge_user(self, ctx, user: discord.Member, limit: int):
         if limit > 100:
-            return await ctx.send("오류 방지를 위해 검색되는 메시지 최대 범위는 100개로 제한됩니다.")
+            return await ctx.send("오류 방지를 위해 검색되는 메시지의 최대 범위는 100개로 제한돼요.")
         tgt_list = []
         async for message in ctx.channel.history(limit=limit):
             if message.author == user:
                 tgt_list.append(message)
         await ctx.channel.delete_messages(tgt_list)
-        msg = await ctx.send(f"{user.mention}(이)가 보낸 메시지 {len(tgt_list)}개를 정리했습니다.\n`이 메시지는 5초 후 삭제됩니다.`")
+        msg = await ctx.send(f"{user.mention}(이)가 보낸 메시지 {len(tgt_list)}개를 정리했어요.\n`이 메시지는 5초 후 삭제돼요.`")
         await msg.delete(delay=5)
 
     @purge.command(name="메시지", description="선택한 메시지까지의 모든 메시지들을 삭제합니다.")
@@ -143,7 +146,7 @@ class Admin(commands.Cog):
         async for message in ctx.channel.history(after=tgt_msg):
             tgt_list.append(message)
         await ctx.channel.delete_messages(tgt_list)
-        msg = await ctx.send(f"`{tgt_msg.id}`부터의 메시지를 정리했습니다.\n`이 메시지는 5초 후 삭제됩니다.`")
+        msg = await ctx.send(f"`{tgt_msg.id}`부터의 메시지를 정리했어요.\n`이 메시지는 5초 후 삭제돼요.`")
         await msg.delete(delay=5)
 
     @commands.Cog.listener()
@@ -155,7 +158,10 @@ class Admin(commands.Cog):
             channel = member.guild.get_channel(int(welcome_msgs[0]["welcome_channel"]))
             await channel.send((welcome_msgs[0]["greet"]).replace("{mention}", member.mention))
         if bool(welcome_msgs[0]["greetpm"]):
-            await member.send((welcome_msgs[0]["greetpm"]).replace("{name}", member.name))
+            try:
+                await member.send((welcome_msgs[0]["greetpm"]).replace("{name}", member.name))
+            except discord.Forbidden:
+                pass
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
