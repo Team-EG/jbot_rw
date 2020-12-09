@@ -45,7 +45,7 @@ def set_column(*args: dict) -> str:
 
 class JBotDB:
     def __init__(self, db_name: str):
-        self.db = loop.run_until_complete(aiosqlite.connect("database/" + db_name + ".db"))
+        self.db = loop.run_until_complete(aiosqlite.connect(("database/" + db_name + ".db") if db_name != ":memory:" else db_name))
         self.db.row_factory = aiosqlite.Row
         self.db_name = db_name
 

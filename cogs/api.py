@@ -1,29 +1,39 @@
 import discord
 import json
 import ssl
+import time
+import jwt
+import aiohttp
 import aiohttp_cors
 from aiohttp import web
 from aiohttp.web import Request
 from aiohttp.web import Response
 from discord.ext import commands
+from modules import jbot_db
 from modules.cilent import CustomClient
 
 
 class API(commands.Cog):
+    discord_api = "https://discord.com/api/v6"
+
     def __init__(self, bot: CustomClient):
         self.bot = bot
-        self.auths = {}
         self.app = web.Application()
         self.routes = web.RouteTableDef()
         self.site: web.TCPSite
-        self.bot.loop.create_task(self.run_api())
         self.cors = aiohttp_cors.setup(self.app, defaults={
             "*": aiohttp_cors.ResourceOptions(allow_credentials=True,
                                               expose_headers="*",
                                               allow_headers="*",)
         })
+        self.bot.loop.create_task(self.run_api())
 
     async def run_api(self):
+        column = jbot_db.set_column({"name": "discord", "type": "TEXT", "default": False},
+                                    {"name": "token", "type": "TEXT", "default": False},
+                                    {"name": "user_id", "type": "INTEGER", "default": False})
+        await self.bot.jbot_db_memory.exec_sql(f"""CREATE TABLE IF NOT EXISTS cache ( {column} )""")
+
         @self.routes.get("/api/guild_setup/{guild_id}")
         async def get_guild_setup(request: Request):
             auth_failed = await self.check_auth(request)
@@ -33,8 +43,13 @@ class API(commands.Cog):
             guild_setup = await self.bot.jbot_db_global.res_sql("""SELECT * FROM guild_setup WHERE guild_id=?""", (guild_id,))
             if not bool(guild_setup):
                 return web.json_response({"description": "Guild Not Found. Check guild_id."}, status=404)
+            tgt_guild: discord.Guild = self.bot.get_guild(guild_id)
+            user = tgt_guild.get_member(auth_failed)
+            if not user.guild_permissions.administrator or user.id != tgt_guild.owner.id:
+                return web.json_response({"description": "You don't have permission."}, status=403)
             to_return = guild_setup[0]
             to_return["to_give_roles"] = json.loads(to_return["to_give_roles"])
+            to_return["warn"] = json.loads(to_return["warn"])
             return web.json_response(guild_setup[0])
 
         @self.routes.get("/api/guild/{guild_id}")
@@ -44,9 +59,11 @@ class API(commands.Cog):
                 return auth_failed
             guild_id = int(request.match_info["guild_id"])
             tgt_guild: discord.Guild = self.bot.get_guild(guild_id)
-            #tgt_guild = tgt_guild if tgt_guild else await self.bot.fetch_guild(guild_id)
             if tgt_guild is None:
                 return web.json_response({"description": "Guild Not Found."}, status=404)
+            user = tgt_guild.get_member(auth_failed)
+            if not user.guild_permissions.administrator or user.id != tgt_guild.owner.id:
+                return web.json_response({"description": "You don't have permission."}, status=403)
             roles = tgt_guild.roles if tgt_guild.roles else await tgt_guild.fetch_roles()
             guild_data = {"name": tgt_guild.name,
                           "text_channels": [{x.id: x.name} for x in tgt_guild.channels if isinstance(x, discord.TextChannel)],
@@ -129,32 +146,43 @@ class API(commands.Cog):
         @self.routes.post("/api/login")
         async def login_api(request: Request):
             body = await request.json()
-            if "user_id" not in body.keys():
+            if "token" not in body.keys():
                 return web.json_response({"description": "Incorrect Body."}, status=400)
-            user = self.bot.get_user(int(body["user_id"]))
+            cache = await self.bot.jbot_db_memory.res_sql("""SELECT token FROM cache WHERE discord=?""", (body['token'],))
+            if cache:
+                resp = {"token": cache[0]["token"]}
+                return web.json_response(resp)
+            header = {"Authorization": f"Bearer {body['token']}"}
+            async with aiohttp.ClientSession() as session:
+                async with session.get(self.discord_api + "/users/@me", headers=header) as resp:
+                    if resp.status != 200:
+                        return web.json_response({"description": "Invalid User Token."}, status=403)
+                    user = await resp.json()
             if user is None:
                 return web.json_response({"description": "User Not Found."}, status=404)
-            # user = user if user else await self.bot.fetch_user(int(body["user_id"]))
-            resp = {"user_id": int(user.id),
-                    "name": str(user.name),
-                    "discriminator": str(user.discriminator),
-                    "avatar_url": str(user.avatar_url)}
+            user_id = user["id"]
+            token = jwt.encode({"user_id": user_id, "time": round(time.time())}, 'secret', algorithm='HS256').decode('utf-8')
+            await self.bot.jbot_db_memory.exec_sql("""INSERT INTO cache VALUES (?, ?, ?)""", (body['token'], token, user_id))
+            resp = {"token": token}
             return web.json_response(resp)
 
         @self.routes.post("/api/update/{guild_id}")
         async def update_settings(request: Request):
-            return web.json_response({"description": "Not Ready"}, status=403)
             auth_failed = await self.check_auth(request)
             if isinstance(auth_failed, Response):
                 return auth_failed
             guild_id = int(request.match_info["guild_id"])
+            tgt_guild: discord.Guild = self.bot.get_guild(guild_id)
+            user = tgt_guild.get_member(auth_failed)
+            if not user.guild_permissions.administrator or user.id != tgt_guild.owner.id:
+                return web.json_response({"description": "You don't have permission."}, status=403)
             available_guilds = [x["guild_id"] for x in await self.bot.jbot_db_global.res_sql("""SELECT guild_id FROM guild_setup""")]
             if guild_id not in available_guilds:
                 return web.json_response({"description": "Guild Not Found."}, status=404)
             body = await request.json()
             usable_keys = ["prefix", "talk_prefix", "log_channel", "announcement", "welcome_channel",
                            "starboard_channel", "greet", "bye", "greetpm", "use_level", "use_antispam",
-                           "use_globaldata", "mute_role", "to_give_roles"]
+                           "use_globaldata", "mute_role", "to_give_roles", "warn"]
             for x in body.keys():
                 if x not in usable_keys:
                     return web.json_response({"description": f"Incorrect Setting Key. ({x})"}, status=400)
@@ -176,8 +204,11 @@ class API(commands.Cog):
     async def check_auth(self, request: Request):
         header = request.headers
         if "Authorization" not in header.keys():
-            return web.json_response({"description": "Requires Authorization"}, status=403)
-        return False
+            return web.json_response({"description": "Requires Authorization"}, status=400)
+        cache = await self.bot.jbot_db_memory.res_sql("""SELECT user_id FROM cache WHERE token=?""", (header['Authorization'],))
+        if not cache:
+            return web.json_response({"description": "Please Login First"}, status=403)
+        return cache[0]["user_id"]
 
     def cog_unload(self):
         self.bot.loop.create_task(self.site.stop())

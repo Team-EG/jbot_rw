@@ -105,9 +105,7 @@ class Level(commands.Cog):
         column_set = jbot_db.set_column({"name": "user_id", "type": "INTEGER", "default": False},
                                         {"name": "exp", "type": "INTEGER", "default": 0},
                                         {"name": "lvl", "type": "INTEGER", "default": 1})
-        lvl_exist = await self.jbot_db_level.res_sql("SELECT name FROM sqlite_master WHERE type='table'")
-        if f"{message.guild.id}_level" not in [x["name"] for x in lvl_exist]:
-            await self.jbot_db_level.exec_sql(f"""CREATE TABLE "{message.guild.id}_level" ( {column_set} )""")
+        await self.jbot_db_level.exec_sql(f"""CREATE TABLE IF NOT EXISTS "{message.guild.id}_level" ( {column_set} )""")
 
         curr_exp_and_lvl = await self.jbot_db_level.res_sql(f"""SELECT * FROM "{message.guild.id}_level" WHERE user_id=?""", (message.author.id,))
 

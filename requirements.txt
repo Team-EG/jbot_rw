@@ -6,3 +6,4 @@ psutil
 nest-asyncio
 koreanbots
 lavalink
+jwt

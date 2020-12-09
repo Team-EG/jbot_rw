@@ -158,7 +158,7 @@ class Utils(commands.Cog):
             return await ctx.send("성공적으로 건의사항을 보냈습니다!")
         await ctx.send("건의사항 보내기가 취소되었습니다.")
 
-    @commands.command(name="경고리스트", description="자신이 보유한 경고들을 보여줍니다.", aliases=["경고보기"])
+    @commands.command(name="경고리스트", description="자신 또는 선택한 유저가 보유한 경고들을 보여줍니다.", usage="`경고리스트 (유저)`", aliases=["경고보기"])
     async def warn_list(self, ctx, user: discord.Member = None):
         user = user if user is not None else ctx.author
         warn_list = await self.jbot_db_warns.res_sql(f"""SELECT * FROM "{ctx.guild.id}_warns" WHERE user_id=?""",

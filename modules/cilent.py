@@ -18,6 +18,7 @@ class CustomClient(commands.AutoShardedBot):
         self.jbot_db_global = jbot_db.JBotDB("jbot_db_global")
         self.jbot_db_warns = jbot_db.JBotDB("jbot_db_warns")
         self.jbot_db_level = jbot_db.JBotDB("jbot_db_level")
+        self.jbot_db_memory = jbot_db.JBotDB(":memory:")
         self.__stable_token = bot_settings["stable_token"]
         self.__canary_token = bot_settings["canary_token"]
         self.last_stock_change = 0

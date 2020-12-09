@@ -18,6 +18,7 @@
 import discord
 import datetime
 import time
+import json
 from . import jbot_db, utils, custom_errors
 from .cilent import CustomClient
 from discord.ext import commands
@@ -47,27 +48,35 @@ async def warn(jbot_db_global: jbot_db.JBotDB, jbot_db_warns: jbot_db.JBotDB, me
                                     {"name": "user_id", "type": "INTEGER", "default": False},
                                     {"name": "issued_by", "type": "INTEGER", "default": False},
                                     {"name": "reason", "type": "TEXT", "default": False})
-    warn_exist = await jbot_db_warns.res_sql("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (f"{guild.id}_warns",), return_raw=True)
-    if not bool(len(warn_exist)):
-        await jbot_db_warns.exec_sql(f"""CREATE TABLE "{guild.id}_warns" ( {column_set} )""")
+    await jbot_db_warns.exec_sql(f"""CREATE TABLE IF NOT EXISTS "{guild.id}_warns" ( {column_set} )""")
     await jbot_db_warns.exec_sql(f"""INSERT INTO "{guild.id}_warns" VALUES (?, ?, ?, ?)""", (current_time, member.id, issued_by.id, reason))
     warn_list = await jbot_db_warns.res_sql(f"""SELECT * FROM "{guild.id}_warns" WHERE user_id=?""", (member.id,))
-    if len(warn_list) == 3:
+    guild_data = await jbot_db_global.res_sql("""SELECT warn FROM guild_setup WHERE guild_id=?""", (guild.id,))
+    warn_data = json.loads(guild_data[0]["warn"])
+    if not bool(warn_data):
+        return
+    if "mute" in warn_data.keys() and len(warn_list) == warn_data["mute"]:
         mute_role_id = await jbot_db_global.res_sql("SELECT mute_role FROM guild_setup WHERE guild_id=?", (guild.id,))
         if not bool(mute_role_id[0]["mute_role"]):
             return
         mute_role = guild.get_role(mute_role_id[0]["mute_role"])
         await member.add_roles(mute_role, reason="경고 누적")
-        await ctx_or_message.channel.send(f"{member.mention} 경고 3회 누적으로 자동으로 뮤트되었습니다.")
-    if len(warn_list) == 6:
-        await member.send(f"`{guild.name}`에서 추방되었습니다. (사유: 경고 누적으로 자동 추방)")
+        await ctx_or_message.channel.send(f"{member.mention} 경고 {warn_data['mute']}회 누적으로 자동으로 뮤트되었어요.")
+    if "kick" in warn_data.keys() and len(warn_list) == warn_data["kick"]:
+        try:
+            await member.send(f"`{guild.name}`에서 추방되었습니다. (사유: 경고 누적으로 자동 추방)")
+        except discord.Forbidden:
+            await ctx_or_message.channel.send("유저에게 추방 안내 DM을 보내지 못했어요. 바로 추방할께요.")
         await member.kick(reason="경고 누적")
-        await ctx_or_message.channel.send(f"`{member}` 경고 6회 누적으로 자동으로 추방되었습니다.")
-    if len(warn_list) == 9:
-        await member.send(f"`{guild.name}`에서 차단되었습니다. (사유: 경고 누적으로 자동 차단)")
-        await member.send("https://www.youtube.com/watch?v=FXPKJUE86d0")
+        await ctx_or_message.channel.send(f"`{member}`님이 경고 {warn_data['kick']}회 누적으로 자동으로 추방되었어요.")
+    if "ban" in warn_data.keys() and len(warn_list) == warn_data["ban"]:
+        try:
+            await member.send(f"`{guild.name}`에서 차단되었어요. (사유: 경고 누적으로 자동 차단)")
+            await member.send("https://www.youtube.com/watch?v=FXPKJUE86d0")
+        except discord.Forbidden:
+            await ctx_or_message.channel.send("유저에게 차단 안내 DM을 보내지 못했어요. 바로 차단할께요.")
         await member.ban(reason="경고 누적")
-        await ctx_or_message.channel.send(f"`{member}` 경고 9회 누적으로 자동으로 차단되었습니다.")
+        await ctx_or_message.channel.send(f"`{member}`님이  경고 {warn_data['ban']}회 누적으로 자동으로 차단되었어요.")
 
 
 async def remove_warn(jbot_db_global: jbot_db.JBotDB, jbot_db_warns: jbot_db.JBotDB, tgt_member: discord.Member, num, ctx: commands.Context = None, message: discord.Message = None):
