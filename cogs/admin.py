@@ -99,8 +99,8 @@ class Admin(commands.Cog):
     async def kick(self, ctx, member: discord.Member, *, reason="없음"):
         try:
             await member.send(f"`{ctx.author.guild.name}`에서 추방되었어요. (사유: {reason}, {ctx.author}이(가) 추방함)")
-        except discord.Forbidden:
-            await ctx.send("선택하신 유저에게 추방 안내 DM을 보내지 못했어요. 바로 추방할께요.")
+        except (discord.Forbidden, discord.HTTPException):
+            await ctx.send("선택하신 유저에게 추방 안내 DM을 보내지 못했어요. 바로 추방할게요.")
         await member.kick(reason=reason+f" ({ctx.author}이(가) 추방함)")
         await ctx.send(f"`{member}`을(를) 추방했어요. (사유: {reason})")
 
@@ -109,8 +109,8 @@ class Admin(commands.Cog):
         try:
             await member.send(f"`{ctx.author.guild.name}`에서 차단되었어요. (사유: {reason}, {ctx.author}이(가) 차단함)")
             await member.send("https://www.youtube.com/watch?v=FXPKJUE86d0")
-        except discord.Forbidden:
-            await ctx.send("선택하신 유저에게 차단 안내 DM을 보내지 못했어요. 바로 차단할께요.")
+        except (discord.Forbidden, discord.HTTPException):
+            await ctx.send("선택하신 유저에게 차단 안내 DM을 보내지 못했어요. 바로 차단할게요.")
         await member.ban(reason=reason + f" ({ctx.author}이(가) 차단함)")
         await ctx.send(f"`{member}`을(를) 차단했어요. (사유: {reason})")
 
@@ -163,7 +163,7 @@ class Admin(commands.Cog):
         if bool(welcome_msgs[0]["greetpm"]):
             try:
                 await member.send((welcome_msgs[0]["greetpm"]).replace("{name}", member.name))
-            except discord.Forbidden:
+            except (discord.Forbidden, discord.HTTPException):
                 pass
 
     @commands.Cog.listener()

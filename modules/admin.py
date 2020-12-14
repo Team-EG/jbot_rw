@@ -65,16 +65,16 @@ async def warn(jbot_db_global: jbot_db.JBotDB, jbot_db_warns: jbot_db.JBotDB, me
     if "kick" in warn_data.keys() and len(warn_list) == warn_data["kick"]:
         try:
             await member.send(f"`{guild.name}`에서 추방되었습니다. (사유: 경고 누적으로 자동 추방)")
-        except discord.Forbidden:
-            await ctx_or_message.channel.send("유저에게 추방 안내 DM을 보내지 못했어요. 바로 추방할께요.")
+        except (discord.Forbidden, discord.HTTPException):
+            await ctx_or_message.channel.send("유저에게 추방 안내 DM을 보내지 못했어요. 바로 추방할게요.")
         await member.kick(reason="경고 누적")
         await ctx_or_message.channel.send(f"`{member}`님이 경고 {warn_data['kick']}회 누적으로 자동으로 추방되었어요.")
     if "ban" in warn_data.keys() and len(warn_list) == warn_data["ban"]:
         try:
             await member.send(f"`{guild.name}`에서 차단되었어요. (사유: 경고 누적으로 자동 차단)")
             await member.send("https://www.youtube.com/watch?v=FXPKJUE86d0")
-        except discord.Forbidden:
-            await ctx_or_message.channel.send("유저에게 차단 안내 DM을 보내지 못했어요. 바로 차단할께요.")
+        except (discord.Forbidden, discord.HTTPException):
+            await ctx_or_message.channel.send("유저에게 차단 안내 DM을 보내지 못했어요. 바로 차단할게요.")
         await member.ban(reason="경고 누적")
         await ctx_or_message.channel.send(f"`{member}`님이  경고 {warn_data['ban']}회 누적으로 자동으로 차단되었어요.")
 
