@@ -1,6 +1,6 @@
 """
     jbot_rw
-    Copyright (C) 2020 Team EG
+    Copyright (C) 2020-2021 Team EG
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published
