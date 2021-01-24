@@ -111,8 +111,12 @@ class API(commands.Cog):
                     continue
                 to_return[x]["name"] = str(member)
                 to_return[x]["nick"] = str(member.nick if hasattr(member, "nick") and member.nick else member.name)
-                to_return[x]["avatar_url"] = str(member.avatar_url)
-            return web.json_response(to_return)
+                to_return[x]["avatar_url"] = str(member.avatar_url_as(format="webp", size=128)) #avatar_url_as(size=128)
+            guild_data: discord.Guild = self.bot.get_guild(guild_id)
+            return web.json_response({"guild_name": str(guild_data) if guild_data else None,
+                                      "guild_member_count": int(guild_data.member_count) if guild_data else None,
+                                      "guild_profile": str(guild_data.icon_url_as(format="webp", size=128)) if guild_data else None,
+                                      "levels": to_return})
 
         @self.routes.get("/api/playlist/{user_id}")
         async def get_playlist(request: Request):

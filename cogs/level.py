@@ -64,7 +64,7 @@ class Level(commands.Cog):
 
     @commands.command(name="랭크", description="이 서버의 레벨 리더보드를 출력합니다.", aliases=["리더보드", "순위"])
     async def rank(self, ctx):
-        url = f"https://jebserver.iptime.org:9003/level/{ctx.guild.id}"
+        url = f"https://dashboard.teameg.tk/level/{ctx.guild.id}"
         await ctx.send(f"`{ctx.guild.name}` 레벨 리더보드를 이 링크에서 확인해보세요!\n{url}")
 
     @commands.Cog.listener()
