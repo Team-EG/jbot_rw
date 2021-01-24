@@ -7,3 +7,4 @@ nest-asyncio
 koreanbots
 lavalink
 jwt
+light-uniquebots

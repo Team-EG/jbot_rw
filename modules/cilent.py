@@ -20,6 +20,7 @@ import json
 import lavalink
 import datetime
 from discord.ext import commands
+from light_uniquebots import LUBClient
 from . import jbot_db
 
 
@@ -29,8 +30,10 @@ class CustomClient(commands.AutoShardedBot):
             bot_settings = json.load(f)
             token = bot_settings["koreanbots_token"]
             debug = bot_settings["debug"]
+            uniquet = bot_settings["uniquebots_token"]
         super().__init__(*args, **kwargs)
         self.koreanbots = koreanbots.Client(self, token, postCount=False if debug else True)
+        self.uniquebots = LUBClient(bot=self, token=uniquet, run_update=False if debug else True)
         self.lavalink: lavalink.Client
         self.jbot_db_global = jbot_db.JBotDB("jbot_db_global")
         self.jbot_db_warns = jbot_db.JBotDB("jbot_db_warns")
