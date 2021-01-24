@@ -21,6 +21,7 @@ import psutil
 import os
 import datetime
 import asyncio
+import time
 from discord.ext import commands
 from modules import utils
 from modules import custom_errors
@@ -72,7 +73,7 @@ class Dev(commands.Cog):
                 await ctx.send(f"공지 보내기 실패 - ID: {x['guild_id']} | ex: ```py\n{ex}```")
         await ctx.send("공지를 모두 보냈습니다!")
 
-    @commands.group(name="개발자", aliases=["dev"])
+    @commands.group(name="dev")
     async def dev(self, ctx):
         if ctx.invoked_subcommand is None:
             embed = discord.Embed(title="개발자 전용 명령어 리스트", description="대충 아무 명령어")
@@ -133,11 +134,6 @@ class Dev(commands.Cog):
             res = eval(line)
         await ctx.send(res if res else "(결과 없음)")
 
-    @dev.command(name="exec", aliases=["이색"])
-    async def exec(self, ctx, *, line: str):
-        res = exec(compile(line, "<string>", "exec"))
-        await ctx.send(res if res else "(결과 없음)")
-
     @dev.command(name="주식추가")
     async def add_stock(self, ctx, name, base_price=1000):
         await self.jbot_db_global.exec_sql("""INSERT INTO stock(name, curr_price) VALUES (?,?)""", (name, base_price))
@@ -156,6 +152,13 @@ class Dev(commands.Cog):
         history = to_hax["history"].split(',')
         history.append(str(haxed))
         await self.jbot_db_global.exec_sql("""UPDATE stock SET curr_price=?, history=? WHERE name=?""", (haxed, ','.join(history), tgt))
+        await ctx.send("완료")
+
+    @dev.command(name="알림작성")
+    async def write_notice(self, ctx, title, *, description):
+        text = f"{title}\n__TITLE-DESCRIPTION__\n{description}"
+        with open(f"notice/{round(time.time())}.txt", "w", encoding="UTF-8") as f:
+            f.write(text)
         await ctx.send("완료")
 
 

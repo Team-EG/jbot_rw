@@ -39,7 +39,8 @@ cog_names = {
     "ServerLog": "서버 로그",
     "Game": "게임",
     "Stock": "주식",
-    "PartTime": "알바"
+    "PartTime": "알바",
+    "Notice": "알림"
 }
 prohibited_cogs = ["Dev", "Error", "Tasks", "EasterEgg", "ServerLog", "Spam"]
 loop = asyncio.get_event_loop()
