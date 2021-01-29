@@ -251,7 +251,7 @@ class API(commands.Cog):
         return int(cache[0]["user_id"])
 
     async def request_to_discord(self, token):
-        cache = await self.bot.jbot_db_memory.res_sql("""SELECT token FROM cache WHERE discord=?""", (token,))
+        cache = await self.bot.jbot_db_memory.res_sql("""SELECT token FROM cache WHERE token=?""", (token,))
         if cache:
             resp = {"token": cache[0]["token"]}
             return web.json_response(resp)
