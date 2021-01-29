@@ -87,6 +87,21 @@ class API(commands.Cog):
                           "members": [{x.id: [str(x), x.nick if x.nick else x.name]} for x in tgt_guild.members],
                           "roles": [{x.id: x.name} for x in roles]}
             return web.json_response(guild_data)
+            
+        @self.routes.get("/api/user-guilds/{user_id}")
+        async def get_user_guild_info(request: Request):
+            user_id = int(request.match_info["user_id"])
+            tgt_user: discord.User = self.bot.get_user(user_id)
+            guild_list = []
+            for x in self.bot.guilds:
+                if user_id in [u.id for u in x.members]:
+                    guild_list.append(x)
+            if not tgt_user or not guild_list:
+                return web.json_response({"description": "User Not Found."}, status=404)
+            return web.json_response([{"id": int(x.id),
+                                       "name": str(x.name),
+                                       "icon_url": str(x.icon_url),
+                                       "has_perm": bool(x.get_member(user_id).guild_permissions.administrator)} for x in guild_list])
 
         @self.routes.get("/api/level/{guild_id}")
         async def get_level_info(request: Request):

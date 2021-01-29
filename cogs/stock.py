@@ -22,7 +22,6 @@ import datetime
 import time
 from discord.ext import commands
 from modules import utils
-from modules import custom_errors
 
 
 class Stock(commands.Cog):

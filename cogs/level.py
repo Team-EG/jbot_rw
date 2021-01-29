@@ -24,7 +24,6 @@ import json
 import asyncio
 from discord.ext import commands
 from modules import lvl_calc
-from modules import utils
 from modules import custom_errors
 from modules import jbot_db
 from modules.cilent import CustomClient
@@ -64,7 +63,7 @@ class Level(commands.Cog):
 
     @commands.command(name="랭크", description="이 서버의 레벨 리더보드를 출력합니다.", aliases=["리더보드", "순위"])
     async def rank(self, ctx):
-        url = f"https://dashboard.teameg.tk/level/{ctx.guild.id}"
+        url = f"https://jbot.teameg.tk/leaderboard/{ctx.guild.id}"
         await ctx.send(f"`{ctx.guild.name}` 레벨 리더보드를 이 링크에서 확인해보세요!\n{url}")
 
     @commands.Cog.listener()

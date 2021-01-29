@@ -36,6 +36,7 @@ class Credit(commands.Cog):
         gpm = self.bot.get_user(665450122926096395)
         rainy = self.bot.get_user(558323117802389514)
         msg = await ctx.send(embed=embed)
+        """
         user_voice = ctx.message.author.voice
         voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
         if voice is None and bool(user_voice) is True:
@@ -45,14 +46,15 @@ class Credit(commands.Cog):
         else:
             is_playing = voice.is_playing()
         if user_voice is None or is_playing:
-            embed = discord.Embed(title="제이봇 크레딧", description="개발: Team EG",
-                                  color=discord.Colour.from_rgb(225, 225, 225))
-            embed.add_field(name="메인 개발자", value=str(eun))
-            embed.add_field(name="대시보드 개발자", value=str(rainy))
-            embed.add_field(name="제작 참여", value=str(gpm))
-            embed.add_field(name="Special thanks to...", value="Team EG members, KSP 한국 포럼 디스코드, and you!")
-            await msg.edit(embed=embed)
-            return
+        """
+        embed = discord.Embed(title="제이봇 크레딧", description="개발: Team EG",
+                              color=discord.Colour.from_rgb(225, 225, 225))
+        embed.add_field(name="메인 개발자", value=str(eun))
+        embed.add_field(name="전 대시보드 개발자", value=str(rainy))
+        embed.add_field(name="대시보드 개발자", value=str(gpm))
+        embed.add_field(name="Special thanks to...", value="Team EG members, KSP 한국 포럼 디스코드, and you!")
+        await msg.edit(embed=embed)
+        return
         channel = user_voice.channel
         await channel.connect()
         voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)

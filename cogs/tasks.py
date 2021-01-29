@@ -17,7 +17,6 @@
 """
 import discord
 import asyncio
-import websockets
 import random
 import time
 from discord.ext import commands
@@ -51,7 +50,7 @@ class Tasks(commands.Cog):
                 try:
                     await self.bot.change_presence(activity=discord.Game(str(x)))
                     await asyncio.sleep(5)
-                except (asyncio.streams.IncompleteReadError, discord.ConnectionClosed, websockets.exceptions.ConnectionClosedError):
+                except Exception:
                     print("Failed Changing. Retrying...")
                     await asyncio.sleep(5)
                     await self.bot.change_presence(activity=discord.Game(str(x)))

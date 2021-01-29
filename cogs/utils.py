@@ -45,7 +45,7 @@ class Utils(commands.Cog):
                        "hELLO< wORLD1"]
         await ctx.send(random.choice(hello_world))
 
-    @commands.command(name="hellothisisverification", description="KOREANBOTS 인증용 명령어입니다.")
+    @commands.command(name="hellothisisverification", description="KOREANBOTS/UniqueBots 인증용 명령어입니다.", aliases=["개발자"])
     async def hellothisisverification(self, ctx):
         await ctx.send("eunwoo1104#9600 (ID: 288302173912170497)")
 
@@ -229,6 +229,10 @@ class Utils(commands.Cog):
         embed.add_field(name="노드 부하", value=f"{round(node.lavalink_load*100)}%")
         embed.add_field(name="노드 서버 부하", value=f"{round(node.system_load*100)}%")
         await ctx.send(embed=embed)
+        
+    @commands.command(name="웹사이트", description="제이봇 웹사이트를 보여줍니다.", aliases=["대시보드"])
+    async def web_link(self, ctx):
+        await ctx.send(f"https://jbot.teameg.tk")
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
