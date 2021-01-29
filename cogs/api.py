@@ -18,8 +18,6 @@
 import discord
 import json
 import ssl
-import time
-import jwt
 import aiohttp
 import aiohttp_cors
 from aiohttp import web
@@ -46,8 +44,7 @@ class API(commands.Cog):
         self.bot.loop.create_task(self.run_api())
 
     async def run_api(self):
-        column = jbot_db.set_column({"name": "discord", "type": "TEXT", "default": False},
-                                    {"name": "token", "type": "TEXT", "default": False},
+        column = jbot_db.set_column({"name": "token", "type": "TEXT", "default": False},
                                     {"name": "user_id", "type": "INTEGER", "default": False})
         await self.bot.jbot_db_memory.exec_sql(f"""CREATE TABLE IF NOT EXISTS cache ( {column} )""")
 
@@ -181,6 +178,9 @@ class API(commands.Cog):
 
         @self.routes.post("/api/login")
         async def login_api(request: Request):
+            return web.json_response({"description": "Deprecated."}, status=404)
+
+            '''
             body = await request.json()
             if "token" not in body.keys():
                 return web.json_response({"description": "Incorrect Body."}, status=400)
@@ -201,6 +201,7 @@ class API(commands.Cog):
             await self.bot.jbot_db_memory.exec_sql("""INSERT INTO cache VALUES (?, ?, ?)""", (body['token'], token, user_id))
             resp = {"token": token}
             return web.json_response(resp)
+            '''
 
         @self.routes.post("/api/update/{guild_id}")
         async def update_settings(request: Request):
@@ -243,8 +244,35 @@ class API(commands.Cog):
             return web.json_response({"description": "Requires Authorization"}, status=400)
         cache = await self.bot.jbot_db_memory.res_sql("""SELECT user_id FROM cache WHERE token=?""", (header['Authorization'],))
         if not cache:
-            return web.json_response({"description": "Please Login First"}, status=403)
-        return cache[0]["user_id"]
+            try_login = await self.request_to_discord(header['Authorization'])
+            if isinstance(try_login, Response):
+                return try_login
+            cache = [{"user_id": try_login}]
+        return int(cache[0]["user_id"])
+
+    async def request_to_discord(self, token):
+        cache = await self.bot.jbot_db_memory.res_sql("""SELECT token FROM cache WHERE discord=?""", (token,))
+        if cache:
+            resp = {"token": cache[0]["token"]}
+            return web.json_response(resp)
+        header = {"Authorization": f"Bearer {token}"}
+        async with aiohttp.ClientSession() as session:
+            # 나중에 클라세션 생성 안해도 되는 방법을 찾아야 될듯
+            async with session.get(self.discord_api + "/users/@me", headers=header) as resp:
+                if resp.status == 429:
+                    return web.json_response({"description", "We are rate limited. Please try again later."}, status=429)
+                elif resp.status != 200:
+                    return web.json_response({"description": "Invalid User Token."}, status=403)
+                user = await resp.json()
+        if not user:
+            return web.json_response({"description": "User Not Found."}, status=404)
+        user_id = user["id"]
+        does_exist = await self.bot.jbot_db_memory.res_sql("""SELECT * FROM cache WHERE user_id=?""", (user_id,))
+        if does_exist:
+            await self.bot.jbot_db_memory.exec_sql("""UPDATE cache SET token=? WHERE user_id=?""", (token, user_id))
+        else:
+            await self.bot.jbot_db_memory.exec_sql("""INSERT INTO cache VALUES (?, ?)""", (token, user_id))
+        return user_id
 
     def cog_unload(self):
         self.bot.loop.create_task(self.site.stop())
