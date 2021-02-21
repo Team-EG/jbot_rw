@@ -80,11 +80,13 @@ class API(commands.Cog):
                 return web.json_response({"description": "You don't have permission."}, status=403)
             roles = tgt_guild.roles if tgt_guild.roles else await tgt_guild.fetch_roles()
             guild_data = {"name": tgt_guild.name,
-                          "text_channels": [{x.id: x.name} for x in tgt_guild.channels if isinstance(x, discord.TextChannel)],
-                          "members": [{x.id: [str(x), x.nick if x.nick else x.name]} for x in tgt_guild.members],
-                          "roles": [{x.id: x.name} for x in roles]}
+                          "ui_style": {str(x.id): {"category_name": x.name, "text_channels": {str(y.id): y.name for y in x.text_channels}} for x in tgt_guild.categories},
+                          "categories": {str(x.id): {"name": x.name, "text_channels": [str(y.id) for y in x.text_channels]} for x in tgt_guild.categories},
+                          "text_channels": {str(x.id): {"name": x.name, "category": str(x.category_id)} for x in tgt_guild.text_channels},
+                          "members": [{str(x.id): [str(x), x.nick if x.nick else x.name]} for x in tgt_guild.members],
+                          "roles": [{str(x.id): x.name} for x in roles]}
             return web.json_response(guild_data)
-            
+
         @self.routes.get("/api/user-guilds/{user_id}")
         async def get_user_guild_info(request: Request):
             user_id = int(request.match_info["user_id"])
